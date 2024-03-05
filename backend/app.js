@@ -18,6 +18,12 @@ app.use(express.json());
 
 app.use(cors());
 
+app.get('/api', async (req, res) => {
+  let query = ''
+  if (req.query.select && ['*', 'Minimal'].includes(req.query.select)) query += `SELECT ${req.query.select}`
+  else query += `SELECT *`
+})
+
 app.post('/ui', async (req, res) => {
   try {
     const queryParameters = req.body.query;
