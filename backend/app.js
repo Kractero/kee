@@ -20,8 +20,14 @@ app.use(cors());
 
 app.get('/api', async (req, res) => {
   let query = ''
-  if (req.query.select && ['*', 'Minimal'].includes(req.query.select)) query += `SELECT ${req.query.select}`
+  if (req.query.select && ['all', 'minimal'].includes(req.query.select)) {
+    if (req.query.select === "all") query += `SELECT *`
+    else query += `SELECT (id, name, season)`
+  }
   else query += `SELECT *`
+
+  if (req.query.season && ['1', '2', '3'].includes(req.query.select)) query += `SELECT S${req.query.season}`
+  else query += `FROM S3`
 })
 
 app.post('/ui', async (req, res) => {
@@ -59,7 +65,17 @@ app.post('/ui', async (req, res) => {
       }
     }
     let test = db.prepare(query).all()
-    console.log(test)
+
+    test.forEach(testItem => {
+      if (testItem.badges) {
+        testItem.badges = JSON.parse(testItem.badges)
+      }
+      if (testItem.trophies) {
+        testItem.trophies = JSON.parse(testItem.trophies)
+      }
+    })
+
+    res.send(test)
   } catch (err) {
     console.log(err)
   }
