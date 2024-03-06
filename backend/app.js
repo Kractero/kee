@@ -49,13 +49,13 @@ app.post('/ui', async (req, res) => {
               if (clause.conditionValue === 'HAS NO') {
                 query += ` JSON_EXTRACT(badges, '$') = '{}';;`
               } else {
-                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.badgeTrophyValue}') ${clause.conditionValue === "IS" ? " = 1" : "IS NULL"}`;
+                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.input}') ${clause.conditionValue === "IS" ? " = 1" : "IS NULL"}`;
               }
             } else {
               if (clause.conditionValue === 'HAS NO') {
                 query += ` JSON_EXTRACT(trophies, '$') = '{}';;`
               } else {
-                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${trophies[clause.badgeTrophyValue]}-${clause.trophyPercentage}') ${clause.conditionValue === "IS" ? " IS NOT NULL" : "IS NULL"}`;
+                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${trophies[clause.input]}-${clause.trophyPercentage}') ${clause.conditionValue === "IS" ? " IS NOT NULL" : "IS NULL"}`;
               }
             }
           } else {
@@ -64,6 +64,8 @@ app.post('/ui', async (req, res) => {
         }
       }
     }
+
+    console.log(query)
     let test = db.prepare(query).all()
 
     test.forEach(testItem => {
@@ -75,7 +77,15 @@ app.post('/ui', async (req, res) => {
       }
     })
 
-    res.send(test)
+    res.send(
+      {
+        data: test, 
+        query: {
+          sql: query,
+          params: queryParameters
+        }
+      }
+    )
   } catch (err) {
     console.log(err)
   }

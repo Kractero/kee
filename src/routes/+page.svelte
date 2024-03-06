@@ -11,24 +11,32 @@
 	import S1S2Card from '../components/S1S2Card.svelte';
 	import S3Card from '../components/S3Card.svelte';
 
+	import * as Pagination from '$lib/components/ui/pagination';
+	import { pushHistory } from '$lib/helpers/pushHistory';
+	import { onMount } from 'svelte';
+
+	export let data: PageData;
+
 	let clauses: Array<Clause> = [
 		{
 			qualifier: '',
-			whereValue: 'name',
+			whereValue: 'region',
 			conditionValue: 'IS',
 			badgeTrophyValue: '',
-			input: 'Kractero',
+			input: '',
 			trophyPercentage: ''
 		}
 	];
 	let qualifier = 'AND';
-	let selectValue = 'S3';
+	let selectValue = 'S1';
 	let queryWhereValue = '*';
 	let returnedItems: any[] = [];
 	let ua: string = '';
 	let decks: string = '';
 	let collections: string = '';
 	let bids: string = '';
+	let currentPage = 1;
+	let clauseHistory: any = [];
 
 	function removeClause(index: number) {
 		clauses = [...clauses.slice(0, index), ...clauses.slice(index + 1)];
@@ -48,9 +56,37 @@
 		];
 	}
 
+	onMount(() => {
+		queryWhereValue = data.parameters.select === "all" ? "*" : "id, name, season" || "";
+		selectValue = data.parameters.from || "";
+		const testBuildClauses = data.parameters.clauses.split(',').map((clause: any) => {
+			const clauser = clause.split(' ')
+			return {
+				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
+				whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
+				conditionValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[2] : clauser[1],
+				badgeTrophyValue: "",
+				input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
+				trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
+			}
+		})
+		clauses = [...testBuildClauses]
+		clauseHistory = localStorage.getItem("clauses") ? JSON.parse(localStorage.getItem("clauses")!) : [];
+	})
+	// http://localhost:5173/?select=min&from=S2&clauses=region+IS+Lazarus,AND+flag+LIKE+Afghanistan
 	async function buildQuery(event: Event) {
 		event.preventDefault();
-
+		const clauseAsString = clauses.map((clause, i) => {
+			return `${clause.qualifier}${i > 0 ? '+' : ""}${clause.whereValue}+${clause.conditionValue}+${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
+		})
+		pushHistory(`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`)
+		if (localStorage.getItem('clauses') !== null) {
+			clauseHistory = JSON.parse(localStorage.getItem('clauses')!)
+			localStorage.setItem('clauses', JSON.stringify([...clauseHistory, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]))
+		} else {
+			clauseHistory = [`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
+		}
 		let cardsToPass: Array<{ CARDID: number; SEASON: number }> = [];
 		if (decks || collections || bids) {
 			cardsToPass = await buildCards(
@@ -83,7 +119,7 @@
 				throw new Error(`HTTP error! Status: ${response.status}`);
 			}
 
-			let data = await response.json();
+			let { data, query } = await response.json();
 
 			if (cardsToPass) {
 				data = data.filter((card: { CARDID: number; SEASON: number }) => {
@@ -99,6 +135,9 @@
 			console.error('Error:', error);
 		}
 	}
+	$: lastPostIndex = currentPage * 25;
+	$: firstPostIndex = lastPostIndex - 25;
+	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex);
 </script>
 
 <form on:submit={buildQuery} class="flex flex-col items-center gap-4">
@@ -136,11 +175,13 @@
 	<p>WHERE</p>
 	{#each clauses as clause, i}
 		<div class="flex gap-2">
-			<button
-				class="p-2 bg-red-400 rounded-md w-18 m-auto"
-				type="button"
-				on:click={() => removeClause(i)}>X</button
-			>
+			{#if i > 0}
+				<button
+					class="p-2 bg-red-400 rounded-md w-18 m-auto"
+					type="button"
+					on:click={() => removeClause(i)}>X</button
+				>
+			{/if}
 			{#if clause.qualifier}
 				<p>{clause.qualifier}</p>
 			{/if}
@@ -167,7 +208,7 @@
 						{#if clause.whereValue === 'badges'}
 							<select
 								class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-								bind:value={clause.badgeTrophyValue}
+								bind:value={clause.input}
 							>
 								{#each badges as badge}
 									<option>{badge}</option>
@@ -177,7 +218,7 @@
 						{#if clause.whereValue === 'trophies'}
 							<select
 								class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-								bind:value={clause.badgeTrophyValue}
+								bind:value={clause.input}
 							>
 								{#each trophies as trophy}
 									<option>{trophy}</option>
@@ -287,17 +328,69 @@
 	<button class="p-2 bg-blue-400 rounded-md w-36 m-auto" type="submit">Compute</button>
 </form>
 
+{#each clauseHistory as clause}
+	<p>{clause}</p>
+{/each}
+
 {#if returnedItems[0] && returnedItems[0].cardcategory}
-	{#each returnedItems as card}
-		{#if card.season !== 3}
-			<S1S2Card {card} />
-		{:else}
-			<S3Card {card} />
-		{/if}
-	{/each}
-{:else}
+	<Pagination.Root count={returnedItems.length} perPage={25} let:pages>
+		<Pagination.Content>
+			<Pagination.Item>
+				<Pagination.PrevButton on:click={() => (currentPage = currentPage - 1)} />
+			</Pagination.Item>
+			{#each pages as page (page.key)}
+				{#if page.type === 'ellipsis'}
+					<Pagination.Item>
+						<Pagination.Ellipsis />
+					</Pagination.Item>
+				{:else}
+					<Pagination.Item>
+						<Pagination.Link {page} isActive={currentPage == page.value}>
+							{page.value}
+						</Pagination.Link>
+					</Pagination.Item>
+				{/if}
+			{/each}
+			<Pagination.Item>
+				<Pagination.NextButton on:click={() => (currentPage = currentPage + 1)} />
+			</Pagination.Item>
+		</Pagination.Content>
+	</Pagination.Root>
+	<div class="grid grid-cols-3">
+		{#each currentCards as card}
+			{#if card.season !== 3}
+				<S1S2Card {card} />
+			{:else}
+				<S3Card {card} />
+			{/if}
+		{/each}
+	</div>
+{:else if returnedItems[0]}
+	<Pagination.Root count={returnedItems.length} perPage={25} let:pages>
+		<Pagination.Content>
+			<Pagination.Item>
+				<Pagination.PrevButton on:click={() => (currentPage = currentPage - 1)} />
+			</Pagination.Item>
+			{#each pages as page (page.key)}
+				{#if page.type === 'ellipsis'}
+					<Pagination.Item>
+						<Pagination.Ellipsis />
+					</Pagination.Item>
+				{:else}
+					<Pagination.Item>
+						<Pagination.Link {page} isActive={currentPage == page.value}>
+							{page.value}
+						</Pagination.Link>
+					</Pagination.Item>
+				{/if}
+			{/each}
+			<Pagination.Item>
+				<Pagination.NextButton on:click={() => (currentPage = currentPage + 1)} />
+			</Pagination.Item>
+		</Pagination.Content>
+	</Pagination.Root>
 	<div class="flex flex-col dark:text-white">
-		{#each returnedItems as card}
+		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
 				{card.season}
 				{card.name}
