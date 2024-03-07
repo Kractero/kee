@@ -17,6 +17,11 @@
 
 	export let data: PageData;
 
+	import {
+		PUBLIC_URL
+	} from '$env/static/public';
+	import { downloadCSV } from '$lib/helpers/download';
+
 	let clauses: Array<Clause> = [
 		{
 			qualifier: '',
@@ -57,10 +62,11 @@
 	}
 
 	onMount(() => {
-		queryWhereValue = data.parameters.select === "all" ? "*" : "id, name, season" || "";
-		selectValue = data.parameters.from || "";
-		const testBuildClauses = data.parameters.clauses.split(',').map((clause: any) => {
-			const clauser = clause.split(' ')
+		queryWhereValue = data.parameters.select === "all" ? "*" : data.parameters.select === "min" ? "id, name, season" : "*";
+		selectValue = data.parameters.from || "S3";
+		const testBuildClauses = data.parameters.clauses ? data.parameters.clauses.split(',').map((clause: any) => {
+			const clauser = clause.split('-')
+			console.log(clauser)
 			return {
 				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
 				whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
@@ -69,20 +75,27 @@
 				input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
 				trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
 			}
-		})
-		clauses = [...testBuildClauses]
+		}) : []
+		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [		{
+			qualifier: '',
+			whereValue: 'region',
+			conditionValue: 'IS',
+			badgeTrophyValue: '',
+			input: '',
+			trophyPercentage: ''
+		}]
 		clauseHistory = localStorage.getItem("clauses") ? JSON.parse(localStorage.getItem("clauses")!) : [];
 	})
-	// http://localhost:5173/?select=min&from=S2&clauses=region+IS+Lazarus,AND+flag+LIKE+Afghanistan
+
 	async function buildQuery(event: Event) {
 		event.preventDefault();
 		const clauseAsString = clauses.map((clause, i) => {
-			return `${clause.qualifier}${i > 0 ? '+' : ""}${clause.whereValue}+${clause.conditionValue}+${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
+			return `${clause.qualifier}${i > 0 ? '-' : ""}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
 		pushHistory(`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`)
 		if (localStorage.getItem('clauses') !== null) {
-			clauseHistory = JSON.parse(localStorage.getItem('clauses')!)
-			localStorage.setItem('clauses', JSON.stringify([...clauseHistory, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]))
+			clauseHistory = [...clauseHistory, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		} else {
 			clauseHistory = [`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
 			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
@@ -104,22 +117,14 @@
 			cards: cardsToPass
 		};
 
-		const requestOptions = {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ query: queyr })
-		};
-
 		try {
-			const response = await fetch('http://localhost:3000/ui', requestOptions);
+			const response = await fetch(`http://localhost:3000/?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
 			}
 
-			let { data, query } = await response.json();
+			let data = await response.json();
 
 			if (cardsToPass) {
 				data = data.filter((card: { CARDID: number; SEASON: number }) => {
@@ -329,8 +334,10 @@
 </form>
 
 {#each clauseHistory as clause}
-	<p>{clause}</p>
+	<a href={`${PUBLIC_URL}/${clause}`}>{clause}</a>
 {/each}
+
+<button class="p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 
 {#if returnedItems[0] && returnedItems[0].cardcategory}
 	<Pagination.Root count={returnedItems.length} perPage={25} let:pages>
