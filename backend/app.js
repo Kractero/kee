@@ -18,7 +18,7 @@ app.use(express.json());
 
 app.use(cors());
 
-app.get('/api', async (req, res) => {
+app.get('/', async (req, res) => {
   let query = ''
   if (req.query.select && ['all', 'minimal'].includes(req.query.select)) {
     if (req.query.select === "all") query += `SELECT *`
@@ -26,69 +26,60 @@ app.get('/api', async (req, res) => {
   }
   else query += `SELECT *`
 
-  if (req.query.season && ['1', '2', '3'].includes(req.query.select)) query += `SELECT S${req.query.season}`
-  else query += `FROM S3`
-})
+  if (req.query.from && ['S1', 'S2', 'S3'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
+  else query += ` FROM S3 WHERE`
+  const testBuildClauses = req.query.clauses ? req.query.clauses.split(',').map((clause) => {
+    const clauser = clause.split('-')
+    return {
+      qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
+      whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
+      conditionValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[2] : clauser[1],
+      badgeTrophyValue: "",
+      input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
+      trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
+    }
+  }) : []
+  for (let i = 0; i < testBuildClauses.length; i++) {
+    const clause = testBuildClauses[i];
 
-app.post('/ui', async (req, res) => {
-  try {
-    const queryParameters = req.body.query;
-    let query = `SELECT ${queryParameters.mainWhereValue} FROM ${queryParameters.table} WHERE`;
+    if (clause.whereValue !== '') {
+      query += ` ${clause.qualifier}`;
 
-    for (let i = 0; i < queryParameters.clauses.length; i++) {
-      const clause = queryParameters.clauses[i];
-
-      if (clause.whereValue !== '') {
-        query += ` ${clause.qualifier}`;
-
-        if (clause.whereValue === "exnation") {
-          query += ` REGION IS NULL`
-        } else {
-          if (['badges', 'trophies'].includes(clause.whereValue)) {
-            if (clause.whereValue === "badges") {
-              if (clause.conditionValue === 'HAS NO') {
-                query += ` JSON_EXTRACT(badges, '$') = '{}';;`
-              } else {
-                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.input}') ${clause.conditionValue === "IS" ? " = 1" : "IS NULL"}`;
-              }
+      if (clause.whereValue === "exnation") {
+        query += ` REGION IS NULL`
+      } else {
+        if (['badges', 'trophies'].includes(clause.whereValue)) {
+          if (clause.whereValue === "badges") {
+            if (clause.conditionValue === 'HAS NO') {
+              query += ` JSON_EXTRACT(badges, '$') = '{}';;`
             } else {
-              if (clause.conditionValue === 'HAS NO') {
-                query += ` JSON_EXTRACT(trophies, '$') = '{}';;`
-              } else {
-                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${trophies[clause.input]}-${clause.trophyPercentage}') ${clause.conditionValue === "IS" ? " IS NOT NULL" : "IS NULL"}`;
-              }
+              query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.input}') ${clause.conditionValue === "IS" ? " = 1" : "IS NULL"}`;
             }
           } else {
-            query += ` ${clause.whereValue} ${clause.conditionValue} ${clause.conditionValue.includes("LIKE") ? `'%${clause.input}%'` : `'${clause.input}'`} COLLATE NOCASE`;
+            if (clause.conditionValue === 'HAS NO') {
+              query += ` JSON_EXTRACT(trophies, '$') = '{}';;`
+            } else {
+              query += ` JSON_EXTRACT(${clause.whereValue}, '$.${trophies[clause.input]}-${clause.trophyPercentage}') ${clause.conditionValue === "IS" ? " IS NOT NULL" : "IS NULL"}`;
+            }
           }
+        } else {
+          query += ` ${clause.whereValue} ${clause.conditionValue} ${clause.conditionValue.includes("LIKE") ? `'%${clause.input}%'` : `'${clause.input}'`} COLLATE NOCASE`;
         }
       }
     }
-
-    console.log(query)
-    let test = db.prepare(query).all()
-
-    test.forEach(testItem => {
-      if (testItem.badges) {
-        testItem.badges = JSON.parse(testItem.badges)
-      }
-      if (testItem.trophies) {
-        testItem.trophies = JSON.parse(testItem.trophies)
-      }
-    })
-
-    res.send(
-      {
-        data: test, 
-        query: {
-          sql: query,
-          params: queryParameters
-        }
-      }
-    )
-  } catch (err) {
-    console.log(err)
   }
+  let test = db.prepare(query).all()
+
+  test.forEach(testItem => {
+    if (testItem.badges) {
+      testItem.badges = JSON.parse(testItem.badges)
+    }
+    if (testItem.trophies) {
+      testItem.trophies = JSON.parse(testItem.trophies)
+    }
+  })
+
+  res.send(test)
 })
 
 app.get('/health', async (req, res) => {
