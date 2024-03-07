@@ -11,8 +11,8 @@ Sideroca frontend Features
 - [X] Deck and collection parameter, api will match returned cards from NS api against the cards from the query, indicating whehter each card is included inside of it, can take multiple
 - [X] No badges, no trophies
 - [X] Pagination
-- [ ] Query history
-- [ ] Downloadble as csv or plain text signal
+- [X] Query history
+- [X] Downloadble as csv or plain text signal
 - [ ] Docs
 - [ ] Dev page?
 - [ ] Rename variables
