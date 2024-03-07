@@ -4,34 +4,28 @@
 	import { category } from '$lib/category';
 	import { flags } from '$lib/flags';
 	import { buildCards } from '$lib/helpers/buildCards';
-
 	import { parameters } from '$lib/parameters';
 	import { trophies } from '$lib/trophies';
 	import type { Clause } from '$lib/types';
 	import S1S2Card from '../components/S1S2Card.svelte';
 	import S3Card from '../components/S3Card.svelte';
-
-	import * as Pagination from '$lib/components/ui/pagination';
+	import { PUBLIC_API_URL } from '$env/static/public';
 	import { pushHistory } from '$lib/helpers/pushHistory';
 	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 
-	import {
-		PUBLIC_URL
-	} from '$env/static/public';
-	import { downloadCSV } from '$lib/helpers/download';
+	let showClient = false;
 
-	let clauses: Array<Clause> = [
-		{
-			qualifier: '',
-			whereValue: 'region',
-			conditionValue: 'IS',
-			badgeTrophyValue: '',
-			input: '',
-			trophyPercentage: ''
-		}
-	];
+	import { downloadCSV } from '$lib/helpers/download';
+	import PreviousQueries from '../components/PreviousQueries.svelte';
+	import Pagination from '../components/Pagination.svelte';
+	import GenericSelect from '../components/GenericSelect.svelte';
+	import ClientCards from '../components/ClientCards.svelte';
+	import { emptyClause } from '$lib/emptyClause';
+
+	let clauses: Array<Clause> = [emptyClause];
 	let qualifier = 'AND';
 	let selectValue = 'S1';
 	let queryWhereValue = '*';
@@ -42,25 +36,11 @@
 	let bids: string = '';
 	let currentPage = 1;
 	let clauseHistory: any = [];
+	let errorMessage = "";
 
 	function removeClause(index: number) {
 		clauses = [...clauses.slice(0, index), ...clauses.slice(index + 1)];
 	}
-
-	function addClause() {
-		clauses = [
-			...clauses,
-			{
-				qualifier: qualifier,
-				whereValue: '',
-				conditionValue: '',
-				badgeTrophyValue: '',
-				input: '',
-				trophyPercentage: ''
-			}
-		];
-	}
-
 	onMount(() => {
 		queryWhereValue = data.parameters.select === "all" ? "*" : data.parameters.select === "min" ? "id, name, season" : "*";
 		selectValue = data.parameters.from || "S3";
@@ -89,12 +69,16 @@
 
 	async function buildQuery(event: Event) {
 		event.preventDefault();
+		errorMessage = "";
 		const clauseAsString = clauses.map((clause, i) => {
 			return `${clause.qualifier}${i > 0 ? '-' : ""}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
 		pushHistory(`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`)
 		if (localStorage.getItem('clauses') !== null) {
-			clauseHistory = [...clauseHistory, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
+			const newClauseString = `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`;
+			if (!clauseHistory.includes(newClauseString)) {
+					clauseHistory = [...clauseHistory, newClauseString]
+			}
 			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		} else {
 			clauseHistory = [`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
@@ -110,34 +94,28 @@
 			);
 		}
 
-		const queyr = {
-			mainWhereValue: queryWhereValue,
-			table: selectValue,
-			clauses: clauses,
-			cards: cardsToPass
-		};
-
 		try {
-			const response = await fetch(`http://localhost:3000/?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
+			const response = await fetch(`${PUBLIC_API_URL}/?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
 
-			if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
-			}
+			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
 			let data = await response.json();
 
 			if (cardsToPass) {
-				data = data.filter((card: { CARDID: number; SEASON: number }) => {
+				data = data.filter((card: { id: number; season: number }) => {
 					return !cardsToPass.some(
 						(collectionCard) =>
-							collectionCard.CARDID === card.CARDID && collectionCard.SEASON === card.SEASON
+							collectionCard.CARDID === card.id && collectionCard.SEASON === card.season
 					);
 				});
 			}
 
 			returnedItems = data;
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error('Error:', error);
+			if (error instanceof Error) {
+				errorMessage = "An error occured: with " + error.message;
+			}
 		}
 	}
 	$: lastPostIndex = currentPage * 25;
@@ -145,25 +123,12 @@
 	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex);
 </script>
 
-<form on:submit={buildQuery} class="flex flex-col items-center gap-4">
+<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center">
 		<p>SELECT</p>
-		<select
-			class="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-			bind:value={queryWhereValue}
-		>
-			<option>*</option>
-			<option>id, name, season</option>
-		</select>
+		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['*', 'id, name, season']} />
 		<p>FROM</p>
-		<select
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-			bind:value={selectValue}
-		>
-			<option>S1</option>
-			<option>S2</option>
-			<option>S3</option>
-		</select>
+		<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3']} />
 	</div>
 
 	<div class="items-center flex gap-2 w-80">
@@ -173,7 +138,7 @@
 			bind:value={qualifier}><option>AND</option><option>OR</option></select
 		>
 		clause
-		<button class="p-2 bg-blue-400 rounded-md w-18 m-auto" type="button" on:click={addClause}
+		<button class="p-2 bg-blue-400 rounded-md w-18 m-auto" type="button" on:click={() => (clauses = [...clauses, emptyClause])}
 			>+</button
 		>
 	</div>
@@ -190,99 +155,31 @@
 			{#if clause.qualifier}
 				<p>{clause.qualifier}</p>
 			{/if}
-			<select
-				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-				bind:value={clause.whereValue}
-			>
-				{#each selectValue === 'S1' ? parameters : parameters.filter((param) => param !== 'exnation') as parameter}
-					<option>{parameter}</option>
-				{/each}
-			</select>
+			<GenericSelect bind:bindValue={clause.whereValue} optionsIterable={selectValue === 'S1' ? parameters : parameters.filter((param) => param !== 'exnation')} />
 			{#if clause.whereValue !== 'exnation'}
 				{#if ['badges', 'trophies'].includes(clause.whereValue)}
 					<p>JSON_EXTRACT {clause.whereValue}</p>
-					<select
-						class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-						bind:value={clause.conditionValue}
-					>
-						<option>IS</option>
-						<option>IS NOT</option>
-						<option>HAS NO</option>
-					</select>
+					<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={['IS', 'IS NOT', 'HAS NO']} />
 					{#if clause.conditionValue !== 'HAS NO'}
 						{#if clause.whereValue === 'badges'}
-							<select
-								class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-								bind:value={clause.input}
-							>
-								{#each badges as badge}
-									<option>{badge}</option>
-								{/each}
-							</select>
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={badges} />
 						{/if}
 						{#if clause.whereValue === 'trophies'}
-							<select
-								class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-								bind:value={clause.input}
-							>
-								{#each trophies as trophy}
-									<option>{trophy}</option>
-								{/each}
-							</select>
-							<select
-								class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-								bind:value={clause.trophyPercentage}
-							>
-								{#each ['1T', '1', '5', '10'] as trophy}
-									<option>{trophy}</option>
-								{/each}
-							</select>
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={trophies} />
+							<GenericSelect bind:bindValue={clause.trophyPercentage} optionsIterable={['1T', '1', '5', '10']} />
 						{/if}
 					{:else}
 						<p>badges</p>
 					{/if}
 				{/if}
 				{#if !['badges', 'trophies'].includes(clause.whereValue)}
-					<select
-						class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-						bind:value={clause.conditionValue}
-					>
-						{#if clause.whereValue !== 'flag'}
-							<option>IS</option>
-							<option>IS NOT</option>
-						{/if}
-						{#if !['cardcategory', 'category'].includes(clause.whereValue)}
-							<option>LIKE</option>
-							<option>NOT LIKE</option>
-						{/if}
-					</select>
+					<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={clause.whereValue !== 'flag' && !['cardcategory', 'category'].includes(clause.whereValue) ? ['IS', 'IS NOT', 'LIKE', 'NOT LIKE'] : clause.whereValue === 'flag' ? ['LIKE', 'NOT LIKE'] : ['IS', 'IS NOT']} />
 					{#if clause.whereValue === 'flag'}
-						<select
-							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-							bind:value={clause.input}
-						>
-							{#each flags as flag}
-								<option>{flag}</option>
-							{/each}
-						</select>
+						<GenericSelect bind:bindValue={clause.input} optionsIterable={flags} />
 					{:else if clause.whereValue === 'cardcategory'}
-						<select
-							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-							bind:value={clause.input}
-						>
-							{#each cardcategory as rarity}
-								<option>{rarity}</option>
-							{/each}
-						</select>
+						<GenericSelect bind:bindValue={clause.input} optionsIterable={cardcategory} />
 					{:else if clause.whereValue === 'category'}
-						<select
-							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-							bind:value={clause.input}
-						>
-							{#each category as government}
-								<option>{government}</option>
-							{/each}
-						</select>
+						<GenericSelect bind:bindValue={clause.input} optionsIterable={category} />
 					{:else}
 						<input
 							class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
@@ -293,76 +190,31 @@
 			{/if}
 		</div>
 	{/each}
-	<div class="w-80 text-left items-center flex gap-2 justify-between">
-		<label for="ua">User Agent</label>
-		<input
-			id="ua"
-			name="ua"
-			class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-			bind:value={ua}
-			required={decks || collections || bids ? true : false}
-		/>
-	</div>
-	<div class="w-80 text-left items-center flex gap-2 justify-between">
-		<label for="deck">Deck</label>
-		<input
-			id="deck"
-			name="deck"
-			class="max-w-48 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-			bind:value={decks}
-		/>
-	</div>
-	<div class="w-80 text-left items-center flex gap-2 justify-between">
-		<label for="collections">Collections</label>
-		<input
-			id="collections"
-			name="collections"
-			class="max-w-48 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-			bind:value={collections}
-		/>
-	</div>
-	<div class="w-80 text-left items-center flex gap-2 justify-between">
-		<label for="bids">Bids</label>
-		<input
-			id="bids"
-			name="bids"
-			class="max-w-48 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-			bind:value={bids}
-		/>
-	</div>
+		<div class="flex gap-2 my-8">
+			<input type="checkbox" id="clientCards" name="clientCards" value={showClient} on:change={() => {
+				showClient = !showClient
+				if (showClient === false) {
+					ua = ""
+					decks = ""
+					collections = ""
+					bids = ""
+				}
+			}}>
+			<label for="clientCards">Check with decks, collections, and bids</label><br>
+		</div>
+	{#if showClient === true}
+		<ClientCards bind:ua={ua} bind:decks={decks} bind:collections={collections} bind:bids={bids} />
+	{/if}
 	<button class="p-2 bg-blue-400 rounded-md w-36 m-auto" type="submit">Compute</button>
 </form>
 
-{#each clauseHistory as clause}
-	<a href={`${PUBLIC_URL}/${clause}`}>{clause}</a>
-{/each}
+{#if errorMessage}
+	<p>{errorMessage}</p>
+{/if}
 
-<button class="p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
-
-{#if returnedItems[0] && returnedItems[0].cardcategory}
-	<Pagination.Root count={returnedItems.length} perPage={25} let:pages>
-		<Pagination.Content>
-			<Pagination.Item>
-				<Pagination.PrevButton on:click={() => (currentPage = currentPage - 1)} />
-			</Pagination.Item>
-			{#each pages as page (page.key)}
-				{#if page.type === 'ellipsis'}
-					<Pagination.Item>
-						<Pagination.Ellipsis />
-					</Pagination.Item>
-				{:else}
-					<Pagination.Item>
-						<Pagination.Link {page} isActive={currentPage == page.value}>
-							{page.value}
-						</Pagination.Link>
-					</Pagination.Item>
-				{/if}
-			{/each}
-			<Pagination.Item>
-				<Pagination.NextButton on:click={() => (currentPage = currentPage + 1)} />
-			</Pagination.Item>
-		</Pagination.Content>
-	</Pagination.Root>
+{#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
+<button class="mb-4 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
 	<div class="grid grid-cols-3">
 		{#each currentCards as card}
 			{#if card.season !== 3}
@@ -372,30 +224,9 @@
 			{/if}
 		{/each}
 	</div>
-{:else if returnedItems[0]}
-	<Pagination.Root count={returnedItems.length} perPage={25} let:pages>
-		<Pagination.Content>
-			<Pagination.Item>
-				<Pagination.PrevButton on:click={() => (currentPage = currentPage - 1)} />
-			</Pagination.Item>
-			{#each pages as page (page.key)}
-				{#if page.type === 'ellipsis'}
-					<Pagination.Item>
-						<Pagination.Ellipsis />
-					</Pagination.Item>
-				{:else}
-					<Pagination.Item>
-						<Pagination.Link {page} isActive={currentPage == page.value}>
-							{page.value}
-						</Pagination.Link>
-					</Pagination.Item>
-				{/if}
-			{/each}
-			<Pagination.Item>
-				<Pagination.NextButton on:click={() => (currentPage = currentPage + 1)} />
-			</Pagination.Item>
-		</Pagination.Content>
-	</Pagination.Root>
+{:else if !errorMessage && returnedItems[0]}
+	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
+	<button class="mb-4 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
@@ -405,3 +236,5 @@
 		{/each}
 	</div>
 {/if}
+
+<PreviousQueries bind:clauseHistory={clauseHistory} />

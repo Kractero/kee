@@ -10,6 +10,7 @@ export const badgesDict: { [key: string]: string } = {
   "Moderator": "mod",
   "Site Supporter": "acc_supporter_bronze"
 }
+
 export const trophiesDict: {[key: string]: string} = {
   'wealth gaps': 'wealthgaps',
   'international artwork': 'deck',

@@ -1,20 +1,12 @@
 <script lang="ts">
+	import { banners } from '$lib/banners';
+	import type { Card } from '$lib/types';
 	import Badges from './Badges.svelte';
 	import S2S3Description from './S2S3Description.svelte';
 
-	export let card: any;
-	export let opt: any = '';
-	export let url: any = '';
-	const banners: { [key: string]: string } = {
-		Admin: 'mod_status',
-		'Game Mod': 'mod_status',
-		WA: 'wa_status',
-		Delegate: 'wa_status',
-		Secretariat: 'wa_status',
-		'Issues Editor': 'semimod_status',
-		'Roleplay Mentor': 'mentor_status',
-		Class: 'class_status'
-	};
+	export let card: Card;
+	export let opt: string = '';
+	export let url: string = '';
 </script>
 
 <a
@@ -23,7 +15,7 @@
 	rel="noopener noreferrer"
 >
 	<div
-		class={`deckcard-container ${card.inCollection !== undefined ? (card.inCollection ? 'border-blue-400 border-2 border-solid' : 'border-red-600 border-2 border-solid') : ''}`}
+		class={`deckcard-container border-2 border-solid`}
 	>
 		<div class="deckcard deckcard-season-3" data-cardid={card.id} data-season="3">
 			<figure class={`front deckcard-category-${card.cardcategory}`}>
