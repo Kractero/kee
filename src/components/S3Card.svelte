@@ -23,7 +23,7 @@
 					<div class="s3-upper">
 						<div class="s3-flagbox">
 							<div class="s3-flag">
-								<div class={`s3-flag-image`} style={`background-image: ${card.flag.includes('./') ? `url(${card.flag}` : `url(https://www.nationstates.net/images/cards/s3/${card.flag})`};`}
+								<div class={`s3-flag-image`} style={`background-image: ${card.flag.includes('./') ? `url(${card.flag.replace('./', '')})` : `url(https://www.nationstates.net/images/cards/s3/${card.flag})`};`}
 								></div>
 							</div>
 						</div>

@@ -13,7 +13,7 @@
   <div class={`deckcard-container border-2 border-solid`}>
       <div class={`deckcard deckcard-season-${card.season}`} data-cardid={card.id} data-season={card.season}>
           <figure class={`front deckcard-category-${card.cardcategory}`} >
-              <div class="deckcard-flag" style={`background-image: ${card.flag.includes('./') ? `url(${card.flag}` : `url(https://www.nationstates.net/images/cards/s${card.season}/${card.flag})`};`}>
+              <div class="deckcard-flag" style={`background-image: ${card.flag.includes('./') ? `url(${card.flag.replace('./', '')})` : `url(https://www.nationstates.net/images/cards/s${card.season}/${card.flag})`};`}>
               </div>
               <div class="deckcard-category"></div>
               <div class="deckcard-title"><p class="nlink nameblock"><span

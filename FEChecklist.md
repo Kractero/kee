@@ -13,6 +13,6 @@ Sideroca frontend Features
 - [X] Pagination
 - [X] Query history
 - [X] Downloadble as csv or plain text signal
-- [ ] Docs
-- [ ] Dev page?
+- [X] Docs
+- [X] Dev page?
 - [ ] Rename variables
