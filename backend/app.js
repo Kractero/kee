@@ -4,7 +4,6 @@ import cors from "cors";
 import { trophies } from "./trophies.js"
 import { rateLimit } from 'express-rate-limit'
 import compression from "compression";
-import helmet from "helmet";
 import { getOrSetToCache } from "./getOrSetToCache.js";
 import { logger } from "./logger.js";
 import "dotenv/config.js";
@@ -22,20 +21,6 @@ const limiter = rateLimit({
   message: { error: 'Rate limit exceeded', status: 429 },
 });
 
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: [
-      "'self'",
-      'https://nakiri.vercel.app',
-      "'unsafe-inline'"
-    ],
-    connectSrc: [
-      "'self'",
-      'https://nakiri.vercel.app'
-    ],
-  },
-}));
 app.use(cors());
 app.use(compression());
 
@@ -50,7 +35,7 @@ app.get('/', limiter, async (req, res) => {
 
     if (req.query.from && ['S1', 'S2', 'S3'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
     else query += ` FROM S3 WHERE`
-    const testBuildClauses = req.query.clauses ? req.query.clauses.split(',').map((clause) => {
+    const clauseBuilder = req.query.clauses ? req.query.clauses.split(',').map((clause) => {
       const clauser = clause.split('-')
       return {
         qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
@@ -61,8 +46,8 @@ app.get('/', limiter, async (req, res) => {
         trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
       }
     }) : []
-    for (let i = 0; i < testBuildClauses.length; i++) {
-      const clause = testBuildClauses[i];
+    for (let i = 0; i < clauseBuilder.length; i++) {
+      const clause = clauseBuilder[i];
 
       if (clause.whereValue !== '') {
         query += ` ${clause.qualifier}`;
@@ -91,18 +76,18 @@ app.get('/', limiter, async (req, res) => {
       }
     }
 
-    let test = await getOrSetToCache(query, () => db.prepare(query).all())
+    let getCardsFromDB = await getOrSetToCache(query, () => db.prepare(query).all())
 
-    test.forEach(testItem => {
-      if (testItem.badges) {
-        testItem.badges = JSON.parse(testItem.badges)
+    getCardsFromDB.forEach(card => {
+      if (card.badges) {
+        card.badges = JSON.parse(card.badges)
       }
-      if (testItem.trophies) {
-        testItem.trophies = JSON.parse(testItem.trophies)
+      if (card.trophies) {
+        card.trophies = JSON.parse(card.trophies)
       }
     })
 
-    res.send(test)
+    res.send(getCardsFromDB)
   } catch (err) {
     logger.error({
       params: req.query
