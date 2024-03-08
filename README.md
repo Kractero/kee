@@ -1,38 +1,27 @@
-# create-svelte
+# Kee
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Queries is a web application that provides access to a database containing the trading card dumps provided by NationStates.
 
-## Creating a project
+Queries does not aim to replicate or dream to match r3n's card queries, but it does seek to provide similar functionalities by enabling users to retrieve cards based on desired parameters.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 🔧 Local Install
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+### Frontend Locally
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+1. Clone the repo `https://github.com/Kractero/kee.git`
+2. CD into installation location.
+3. `npm install`
+4. `npm run dev`
 
-## Developing
+### API Locally
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+1. Clone the repo `https://github.com/Kractero/kee.git`
+2. CD into installation location.
+3. Install the dumps from [NS S3](https://www.nationstates.net/pages/cardlist_S3.xml.gz), [NS S2](https://www.nationstates.net/pages/cardlist_S2.xml.gz), [NS S1](https://www.nationstates.net/pages/cardlist_S!.xml.gz).
+4. Convert the dumps to JSONL.
+5. Run the python script `python build_db.py` to build the local sqlite database, and then move it into the backend folder.
+6. CD into backend.
+7. `npm install`
+8. `npm run dev`
 
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+![Frostleaf](./static/Frostleaf.jpg)
