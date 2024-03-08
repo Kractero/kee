@@ -1,7 +1,10 @@
 <script>
+	import Head from '../../components/Head.svelte';
 	import S1S2Card from '../../components/S1S2Card.svelte';
 	import S3Card from '../../components/S3Card.svelte';
 </script>
+
+<Head title={`Queries - Dev}`} description={"Query cards from the NationStates card game"} />
 
 <div class="flex flex-wrap justify-center">
 	<S1S2Card

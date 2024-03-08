@@ -24,7 +24,7 @@ const limiter = rateLimit({
 app.use(cors());
 app.use(compression());
 
-app.get('/', limiter, async (req, res) => {
+app.get('/api', limiter, async (req, res) => {
   try {
     let query = ''
     if (req.query.select && ['all', 'minimal'].includes(req.query.select)) {

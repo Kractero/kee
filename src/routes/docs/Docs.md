@@ -16,7 +16,7 @@ The api is built with Express. The main endpoint for interacting with trade reco
 
 ### Perform A Query
 
-- **Endpoint:** `/`
+- **Endpoint:** `/api`
 - **Method:** `GET`
 - **Description:** Retrieve cards based on the parameters.
 

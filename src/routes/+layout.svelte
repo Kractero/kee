@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Computer, Home, Moon, NotebookText, Sun } from 'lucide-svelte';
+	import { Computer, Github, Home, Moon, NotebookText, Sun } from 'lucide-svelte';
 	import '../app.css';
 </script>
 
@@ -33,6 +33,9 @@
 			</a>
 			<a href="/dev" id="dev" class="inline ml-2">
 				<Computer />
+			</a>
+			<a target="_blank" rel="noreferrer noopener" href="https://github.com/Kractero/kee" id="dev" class="inline ml-2">
+				<Github />
 			</a>
 		</div>
 	</div>

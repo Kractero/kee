@@ -24,6 +24,7 @@
 	import GenericSelect from '../components/GenericSelect.svelte';
 	import ClientCards from '../components/ClientCards.svelte';
 	import { emptyClause } from '$lib/emptyClause';
+	import Head from '../components/Head.svelte';
 
 	let clauses: Array<Clause> = [emptyClause("")];
 	let qualifier = 'AND';
@@ -112,6 +113,8 @@
 	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex);
 </script>
 
+<Head title={`Queries`} description={"Query cards from the NationStates card game"} />
+
 <form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center">
 		<p>SELECT</p>
@@ -194,7 +197,7 @@
 	{#if showClient === true}
 		<ClientCards bind:ua={ua} bind:decks={decks} bind:collections={collections} bind:bids={bids} />
 	{/if}
-	<button class="p-2 bg-blue-400 rounded-md w-36 m-auto" type="submit">Compute</button>
+	<button data-umami-event="Query computed" class="p-2 bg-blue-400 rounded-md w-36 m-auto" type="submit">Compute</button>
 </form>
 
 {#if errorMessage}
@@ -202,7 +205,7 @@
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-<button class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 <Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
 	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
@@ -215,7 +218,7 @@
 	</div>
 {:else if !errorMessage && returnedItems[0]}
 	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<button class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+	<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>

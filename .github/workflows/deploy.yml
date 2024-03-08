@@ -24,7 +24,7 @@ jobs:
         passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
         port: ${{ secrets.PORT }}
         script: |
-          cd docker/sideroca
+          cd docker/kee
           git pull origin main
           git status
           docker-compose up -d --build
