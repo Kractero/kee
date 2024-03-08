@@ -27,7 +27,7 @@ app.use(compression());
 app.get('/api', limiter, async (req, res) => {
   try {
     let query = ''
-    if (req.query.select && ['all', 'minimal'].includes(req.query.select)) {
+    if (req.query.select && ['all', 'min'].includes(req.query.select)) {
       if (req.query.select === "all") query += `SELECT *`
       else query += `SELECT (id, name, season)`
     }
