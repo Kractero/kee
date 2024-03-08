@@ -27,4 +27,5 @@ jobs:
           cd docker/kee
           git pull origin main
           git status
+          cd backend
           docker-compose up -d --build
