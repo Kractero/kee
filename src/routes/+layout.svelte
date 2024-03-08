@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Computer, Github, Home, Moon, NotebookText, Sun } from 'lucide-svelte';
 	import '../app.css';
+	import { base } from "$app/paths"
 </script>
 
 <main class="font-main flex min-h-screen flex-col items-center p-12 mb-16">
@@ -28,10 +29,10 @@
 			>
 				<Moon class="hidden dark:inline mx-2" />
 			</button>
-			<a href="/docs" id="docs" class="inline">
+			<a href={`${base}/docs`} id="docs" class="inline">
 				<NotebookText />
 			</a>
-			<a href="/dev" id="dev" class="inline ml-2">
+			<a href={`${base}/dev`}" id="dev" class="inline ml-2">
 				<Computer />
 			</a>
 			<a target="_blank" rel="noreferrer noopener" href="https://github.com/Kractero/kee" id="dev" class="inline ml-2">

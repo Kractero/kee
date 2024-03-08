@@ -82,7 +82,7 @@
 		}
 
 		try {
-			const response = await fetch(`${PUBLIC_API_URL}/?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
+			const response = await fetch(`${PUBLIC_API_URL}/api?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
 
 			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
