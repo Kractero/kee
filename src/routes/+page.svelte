@@ -12,12 +12,8 @@
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { pushHistory } from '$lib/helpers/pushHistory';
 	import { onMount } from 'svelte';
-	import type { PageData } from './$types';
-
-	export let data: PageData;
 
 	let showClient = false;
-
 	import { downloadCSV } from '$lib/helpers/download';
 	import PreviousQueries from '../components/PreviousQueries.svelte';
 	import Pagination from '../components/Pagination.svelte';
@@ -25,6 +21,7 @@
 	import ClientCards from '../components/ClientCards.svelte';
 	import { emptyClause } from '$lib/emptyClause';
 	import Head from '../components/Head.svelte';
+	import { page } from '$app/stores';
 
 	let clauses: Array<Clause> = [emptyClause("")];
 	let qualifier = 'AND';
@@ -40,9 +37,9 @@
 	let errorMessage = "";
 
 	onMount(() => {
-		queryWhereValue = data.parameters.select === "all" ? "*" : data.parameters.select === "min" ? "id, name, season" : "*";
-		selectValue = data.parameters.from || "S3";
-		const testBuildClauses = data.parameters.clauses ? data.parameters.clauses.split(',').map((clause: string) => {
+		queryWhereValue = $page.url.searchParams.get('select') === "all" ? "*" : $page.url.searchParams.get('select') === "min" ? "id, name, season" : "*";
+		selectValue = $page.url.searchParams.get('from') || "S3";
+		const testBuildClauses = $page.url.searchParams.get('clauses') ? $page.url.searchParams.get('clauses').split(',').map((clause: string) => {
 			const clauser = clause.split('-')
 			return {
 				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
