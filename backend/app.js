@@ -62,7 +62,7 @@ app.get('/api', limiter, async (req, res) => {
               if (clause.conditionValue === 'HAS NO') {
                 query += ` JSON_EXTRACT(badges, '$') = '{}';;`
               } else {
-                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.input}') ${clause.conditionValue === "IS" ? " = 1" : "IS NULL"}`;
+                query += ` JSON_EXTRACT(${clause.whereValue}, '$.${clause.input}') ${clause.conditionValue === "IS" ? " >= 1" : "IS NULL"}`;
               }
             } else {
               if (clause.conditionValue === 'HAS NO') {
