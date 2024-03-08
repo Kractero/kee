@@ -35,11 +35,12 @@
 	let currentPage = 1;
 	let clauseHistory: string[] = [];
 	let errorMessage = "";
+	let clauseAsString: any[];
 
 	onMount(() => {
 		queryWhereValue = $page.url.searchParams.get('select') === "all" ? "*" : $page.url.searchParams.get('select') === "min" ? "id, name, season" : "*";
 		selectValue = $page.url.searchParams.get('from') || "S3";
-		const testBuildClauses = $page.url.searchParams.get('clauses') ? $page.url.searchParams.get('clauses').split(',').map((clause: string) => {
+		const testBuildClauses = $page.url.searchParams.get('clauses') !== "" ? $page.url.searchParams.get('clauses')!.split(',').map((clause: string) => {
 			const clauser = clause.split('-')
 			return {
 				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
@@ -57,7 +58,7 @@
 	async function buildQuery(event: Event) {
 		event.preventDefault();
 		errorMessage = "";
-		const clauseAsString = clauses.map((clause, i) => {
+		clauseAsString = clauses.map((clause, i) => {
 			return `${clause.qualifier}${i > 0 ? '-' : ""}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
 		pushHistory(`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`)
@@ -202,7 +203,7 @@
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
 <Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
 	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
@@ -215,7 +216,7 @@
 	</div>
 {:else if !errorMessage && returnedItems[0]}
 	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+	<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
