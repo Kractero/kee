@@ -14,11 +14,13 @@ const db = new Database('cards.db');
 
 const app = express()
 app.use(express.json());
+app.set('trust proxy', true)
 
 const limiter = rateLimit({
   windowMs: 30 * 1000,
   max: 50,
   message: { error: 'Rate limit exceeded', status: 429 },
+
 });
 
 app.use(cors());
@@ -29,7 +31,7 @@ app.get('/api', limiter, async (req, res) => {
     let query = ''
     if (req.query.select && ['all', 'min'].includes(req.query.select)) {
       if (req.query.select === "all") query += `SELECT *`
-      else query += `SELECT (id, name, season)`
+      else query += `SELECT id, name, season`
     }
     else query += `SELECT *`
 
