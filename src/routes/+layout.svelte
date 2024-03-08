@@ -1,10 +1,40 @@
-<script>
-    import "../app.css";
+<script lang="ts">
+	import { Computer, Home, Moon, NotebookText, Sun } from 'lucide-svelte';
+	import '../app.css';
 </script>
 
-<main class="font-main flex min-h-screen flex-col items-center p-12">
-    <div class='mt-2 mb-2 text-center'>
-        <h1 class="text-7xl my-2 mb-10 tracking-tight">Card <span class='text-purple-700'>Queries</span></h1>
-      </div>
-    <slot />
+<main class="font-main flex min-h-screen flex-col items-center p-12 mb-16">
+	<div class="mt-2 mb-2 text-center flex flex-col items-center">
+		<h1 class="text-7xl my-2 mb-8 tracking-tight">
+			Card <span class="text-purple-700">Queries</span>
+		</h1>
+		<div class="mb-8 flex">
+			<a href="/" class="inline">
+				<Home />
+			</a>
+			<button
+				on:click={() => {
+					localStorage.setItem('theme', 'dark');
+					document.documentElement.classList.add('dark');
+				}}
+			>
+				<Sun class="inline dark:hidden mx-2" />
+			</button>
+			<button
+				on:click={() => {
+					localStorage.setItem('theme', 'light');
+					document.documentElement.classList.remove('dark');
+				}}
+			>
+				<Moon class="hidden dark:inline mx-2" />
+			</button>
+			<a href="/docs" id="docs" class="inline">
+				<NotebookText />
+			</a>
+			<a href="/dev" id="dev" class="inline ml-2">
+				<Computer />
+			</a>
+		</div>
+	</div>
+	<slot />
 </main>

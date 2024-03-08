@@ -1,10 +1,9 @@
 <script lang="ts">
-	import type { Clause } from "$lib/types";
   import { Trash } from "lucide-svelte"
 	import {
 		PUBLIC_URL
 	} from '$env/static/public';
-  export let clauseHistory: Array<Clause>;
+  export let clauseHistory: Array<string>;
 </script>
 
 <h2 class='text-lg font-bold mb-2 text-center mt-16'>Previous Queries</h2>

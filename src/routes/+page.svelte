@@ -6,7 +6,7 @@
 	import { buildCards } from '$lib/helpers/buildCards';
 	import { parameters } from '$lib/parameters';
 	import { trophies } from '$lib/trophies';
-	import type { Clause } from '$lib/types';
+	import type { Card, Clause } from '$lib/types';
 	import S1S2Card from '../components/S1S2Card.svelte';
 	import S3Card from '../components/S3Card.svelte';
 	import { PUBLIC_API_URL } from '$env/static/public';
@@ -25,28 +25,24 @@
 	import ClientCards from '../components/ClientCards.svelte';
 	import { emptyClause } from '$lib/emptyClause';
 
-	let clauses: Array<Clause> = [emptyClause];
+	let clauses: Array<Clause> = [emptyClause("")];
 	let qualifier = 'AND';
-	let selectValue = 'S1';
+	let selectValue = 'S3';
 	let queryWhereValue = '*';
-	let returnedItems: any[] = [];
+	let returnedItems: Card[] = [];
 	let ua: string = '';
 	let decks: string = '';
 	let collections: string = '';
 	let bids: string = '';
 	let currentPage = 1;
-	let clauseHistory: any = [];
+	let clauseHistory: string[] = [];
 	let errorMessage = "";
 
-	function removeClause(index: number) {
-		clauses = [...clauses.slice(0, index), ...clauses.slice(index + 1)];
-	}
 	onMount(() => {
 		queryWhereValue = data.parameters.select === "all" ? "*" : data.parameters.select === "min" ? "id, name, season" : "*";
 		selectValue = data.parameters.from || "S3";
-		const testBuildClauses = data.parameters.clauses ? data.parameters.clauses.split(',').map((clause: any) => {
+		const testBuildClauses = data.parameters.clauses ? data.parameters.clauses.split(',').map((clause: string) => {
 			const clauser = clause.split('-')
-			console.log(clauser)
 			return {
 				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
 				whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
@@ -56,14 +52,7 @@
 				trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
 			}
 		}) : []
-		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [		{
-			qualifier: '',
-			whereValue: 'region',
-			conditionValue: 'IS',
-			badgeTrophyValue: '',
-			input: '',
-			trophyPercentage: ''
-		}]
+		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause("")]
 		clauseHistory = localStorage.getItem("clauses") ? JSON.parse(localStorage.getItem("clauses")!) : [];
 	})
 
@@ -138,22 +127,22 @@
 			bind:value={qualifier}><option>AND</option><option>OR</option></select
 		>
 		clause
-		<button class="p-2 bg-blue-400 rounded-md w-18 m-auto" type="button" on:click={() => (clauses = [...clauses, emptyClause])}
+		<button class="p-2 bg-blue-400 rounded-md w-18 m-auto" type="button" on:click={() => (clauses = [...clauses, emptyClause(qualifier)])}
 			>+</button
 		>
 	</div>
 	<p>WHERE</p>
 	{#each clauses as clause, i}
-		<div class="flex gap-2">
+		<div class="flex gap-2 items-center">
 			{#if i > 0}
 				<button
 					class="p-2 bg-red-400 rounded-md w-18 m-auto"
 					type="button"
-					on:click={() => removeClause(i)}>X</button
+					on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</button
 				>
 			{/if}
 			{#if clause.qualifier}
-				<p>{clause.qualifier}</p>
+				<p class="w-12 text-center">{clause.qualifier}</p>
 			{/if}
 			<GenericSelect bind:bindValue={clause.whereValue} optionsIterable={selectValue === 'S1' ? parameters : parameters.filter((param) => param !== 'exnation')} />
 			{#if clause.whereValue !== 'exnation'}
@@ -213,9 +202,9 @@
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-<button class="mb-4 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+<button class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 <Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<div class="grid grid-cols-3">
+	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
 			{#if card.season !== 3}
 				<S1S2Card {card} />
@@ -226,7 +215,7 @@
 	</div>
 {:else if !errorMessage && returnedItems[0]}
 	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<button class="mb-4 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
+	<button class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `${clauseHistory[clauseHistory.length-1]}.csv`)}>Download</button>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
