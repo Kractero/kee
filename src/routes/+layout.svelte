@@ -29,10 +29,10 @@
 			>
 				<Moon class="hidden dark:inline mx-2" />
 			</button>
-			<a href={`${base}/docs`} id="docs" class="inline">
+			<a href="{base}/docs" id="docs" class="inline">
 				<NotebookText />
 			</a>
-			<a href={`${base}/dev`}" id="dev" class="inline ml-2">
+			<a href="{base}/dev" id="dev" class="inline ml-2">
 				<Computer />
 			</a>
 			<a target="_blank" rel="noreferrer noopener" href="https://github.com/Kractero/kee" id="dev" class="inline ml-2">
