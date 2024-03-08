@@ -3,7 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: 'main'
-
+    paths-ignore:
+      - 'backend/**'
 jobs:
   build_site:
     runs-on: ubuntu-latest
@@ -28,6 +29,8 @@ jobs:
 
       - name: build
         env:
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+          PUBLIC_API_URL: ${{ secrets.PUBLIC_API_URL }}
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: |
           npm run build
