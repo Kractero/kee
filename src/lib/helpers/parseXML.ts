@@ -6,7 +6,7 @@ export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function parseXML(url: string, userAgent: string, password?: string): Promise<{[key: string]: any}> {
+export async function parseXML(url: string, userAgent: string, password?: string): Promise<{ [key: string]: any }> {
 	const headers: Record<string, string> = {
 		'User-Agent': `Used by ${userAgent} with Hare, written by Kractero`
 	};
@@ -15,17 +15,17 @@ export async function parseXML(url: string, userAgent: string, password?: string
 		headers['X-Password'] = password;
 	}
 
-	const response = await fetch(url, {
+	const response = await fetch(`${url}&userAgent=Used by ${userAgent} with Queries, written by Kractero`, {
 		method: 'GET',
 		headers
 	});
 
 	if (response.status === 404) {
-		return {"status": `failed with error code 404`}
+		return { "status": `failed with error code 404` }
 	}
 
 	if (response.status === 409) {
-		return {"status": `failed with error code 409`}
+		return { "status": `failed with error code 409` }
 	}
 
 	if (response.status === 429) {
