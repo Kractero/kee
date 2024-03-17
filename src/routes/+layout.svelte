@@ -10,7 +10,7 @@
 			Card <span class="text-purple-700">Queries</span>
 		</h1>
 		<div class="mb-8 flex">
-			<a href="{base}" class="inline">
+			<a href="{base}/" class="inline">
 				<Home />
 			</a>
 			<button
