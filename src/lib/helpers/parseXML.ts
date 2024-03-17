@@ -6,9 +6,9 @@ export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function parseXML(url: string, userAgent: string, password?: string): Promise<{ [key: string]: any }> {
+export async function parseXML(url: string, userAgent: string, password?: string) {
 	const headers: Record<string, string> = {
-		'User-Agent': `Used by ${userAgent} with Hare, written by Kractero`
+		'User-Agent': `Used by ${userAgent} with Queries, written by Kractero`
 	};
 
 	if (password) {
