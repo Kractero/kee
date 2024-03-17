@@ -38,9 +38,9 @@
 	let clauseAsString: any[];
 
 	onMount(() => {
-		queryWhereValue = $page.url.searchParams.get('select') === "all" ? "*" : $page.url.searchParams.get('select') === "min" ? "id, name, season" : "*";
+		queryWhereValue = $page.url.searchParams.has('select') && $page.url.searchParams.get('select') === "all" ? "*" : $page.url.searchParams.get('select') === "min" ? "id, name, season" : "*";
 		selectValue = $page.url.searchParams.get('from') || "S3";
-		const testBuildClauses = $page.url.searchParams.get('clauses') !== "" ? $page.url.searchParams.get('clauses')!.split(',').map((clause: string) => {
+		const testBuildClauses = $page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null ? $page.url.searchParams.get('clauses')!.split(',').map((clause: string) => {
 			const clauser = clause.split('-')
 			return {
 				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
