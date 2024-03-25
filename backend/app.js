@@ -14,7 +14,7 @@ const db = new Database('cards.db');
 
 const app = express()
 app.use(express.json());
-app.set('trust proxy', true)
+app.set('trust proxy', 1)
 
 const limiter = rateLimit({
   windowMs: 30 * 1000,
@@ -25,6 +25,8 @@ const limiter = rateLimit({
 
 app.use(cors());
 app.use(compression());
+
+app.get('/ip', (request, response) => response.send(request.ip))
 
 app.get('/api', limiter, async (req, res) => {
   try {
@@ -55,7 +57,7 @@ app.get('/api', limiter, async (req, res) => {
         query += ` ${clause.qualifier}`;
 
         if (clause.whereValue === "exnation") {
-          query += ` REGION IS NULL`
+          query += ` REGION ${clause.input === "true" ? "IS" : "IS NOT"} NULL`
         } else {
           if (['badges', 'trophies'].includes(clause.whereValue)) {
             if (clause.whereValue === "badges") {

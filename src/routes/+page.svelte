@@ -177,6 +177,9 @@
 						/>
 					{/if}
 				{/if}
+			{:else}
+				<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={["IS"]} />
+				<GenericSelect bind:bindValue={clause.input} optionsIterable={["TRUE", "FALSE"]} />
 			{/if}
 		</div>
 	{/each}
