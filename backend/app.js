@@ -26,8 +26,6 @@ const limiter = rateLimit({
 app.use(cors());
 app.use(compression());
 
-app.get('/ip', (request, response) => response.send(request.ip))
-
 app.get('/api', limiter, async (req, res) => {
   try {
     let query = ''
