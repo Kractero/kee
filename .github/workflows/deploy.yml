@@ -28,4 +28,4 @@ jobs:
           git pull origin main
           git status
           cd backend
-          docker-compose up -d --build
+          docker compose up -d --build
