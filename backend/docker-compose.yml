@@ -20,7 +20,7 @@ services:
           "-s",
           "-o",
           "/dev/null",
-          "https://new.sideroca.com/health",
+          "https://kee.sideroca.com/health",
         ]
       interval: 60s
       timeout: 10s

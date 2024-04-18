@@ -10,8 +10,6 @@ import "dotenv/config.js";
 
 const port = process.env.PORT || 3000;
 
-const db = new Database('cards.db');
-
 const app = express()
 app.use(express.json());
 app.set('trust proxy', 1)
@@ -28,6 +26,7 @@ app.use(compression());
 
 app.get('/api', limiter, async (req, res) => {
   try {
+    const db = new Database('cards.db');
     let query = ''
     if (req.query.select && ['all', 'min'].includes(req.query.select)) {
       if (req.query.select === "all") query += `SELECT *`
@@ -90,12 +89,34 @@ app.get('/api', limiter, async (req, res) => {
     })
 
     res.send(getCardsFromDB)
+
+    db.close();
   } catch (err) {
     logger.error({
       params: req.query
     }, `An error occured on the / route: ${err}`)
   }
 })
+
+// Cardle maybe
+// app.get('/random', async (req, res) => {
+//   const db = new Database('cards.db');
+
+//   let season = 3;
+//   let category = "legendary";
+//   if ([1, 2, 3].includes(parseInt(req.query.season))) {
+//     season = parseInt(req.query.season);
+//   }
+
+//   if (['common', 'uncommon', 'rare', 'ultra-rare', 'epic', 'legendary'].includes(req.query.cardcategory)) {
+//     category = req.query.cardcategory
+//   }
+
+//   const row = db.prepare(`SELECT * FROM S${season} WHERE cardcategory = '${category}' ORDER BY RANDOM() LIMIT 1`).get();
+//   res.status(200).json(row);
+
+//   db.close();
+// })
 
 app.get('/health', async (req, res) => {
   logger.info("We live")
