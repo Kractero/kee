@@ -38,6 +38,10 @@ app.get('/api', limiter, async (req, res) => {
     else query += ` FROM S3 WHERE`
     const clauseBuilder = req.query.clauses ? req.query.clauses.split(',').map((clause) => {
       const clauser = clause.split('-')
+      if (clauser[3] === "rare") {
+        clauser[2] = "ultra-rare"
+        clauser.pop()
+      }
       return {
         qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
         whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
