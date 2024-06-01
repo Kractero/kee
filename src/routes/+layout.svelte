@@ -4,8 +4,8 @@
 	import { base } from "$app/paths"
 </script>
 
-<main class="font-main flex min-h-screen flex-col items-center p-12 mb-16">
-	<div class="mt-2 mb-2 text-center flex flex-col items-center">
+<main class="flex min-h-screen flex-col items-center p-12 mb-16">
+	<div class="font-main mt-2 mb-2 text-center flex flex-col items-center">
 		<h1 class="text-7xl my-2 mb-8 tracking-tight">
 			Card <span class="text-purple-700">Queries</span>
 		</h1>

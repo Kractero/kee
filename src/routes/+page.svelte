@@ -113,7 +113,7 @@
 
 <Head title={`Queries`} description={"Query cards from the NationStates card game"} />
 
-<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
+<form on:submit={buildQuery} class="font-main flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center">
 		<p>SELECT</p>
 		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['*', 'id, name, season']} />
@@ -202,11 +202,11 @@
 </form>
 
 {#if errorMessage}
-	<p>{errorMessage}</p>
+	<p class="font-main">{errorMessage}</p>
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
+<button data-umami-event="Results downloaded" class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
 <Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
 	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
@@ -219,7 +219,7 @@
 	</div>
 {:else if !errorMessage && returnedItems[0]}
 	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<button data-umami-event="Results downloaded" class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
+	<button data-umami-event="Results downloaded" class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
