@@ -4,6 +4,8 @@ Queries is a web application that provides access to a database containing the t
 
 Queries does not aim to replicate or dream to match r3n's card queries, but it does seek to provide similar functionalities by enabling users to retrieve cards based on desired parameters.
 
+The frontend is hosted on github pages while the api is hosted on a vps.
+
 ## 🔧 Local Install
 
 ### Frontend Locally
