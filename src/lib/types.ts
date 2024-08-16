@@ -20,4 +20,5 @@ export interface Card {
   description: string
   badges: {[key: string]: string} | string
   trophies: {[key: string]: string} | string
+  cte: boolean
 }

@@ -14,16 +14,16 @@
 	target="_blank"
 	rel="noopener noreferrer"
 >
-	<div
-		class={`deckcard-container border-2 border-solid`}
-	>
+	<div class={`deckcard-container border-2 border-solid ${card.cte === true && 'opacity-50'}`}>
 		<div class="deckcard deckcard-season-3" data-cardid={card.id} data-season="3">
 			<figure class={`front deckcard-category-${card.cardcategory}`}>
 				<div class="s3-content">
 					<div class="s3-upper">
 						<div class="s3-flagbox">
 							<div class="s3-flag">
-								<div class={`s3-flag-image`} style={`background-image: ${card.flag.includes('./') ? `url(${card.flag.replace('./', '')})` : `url(https://www.nationstates.net/images/cards/s3/${card.flag})`};`}
+								<div
+									class={`s3-flag-image`}
+									style={`background-image: ${card.flag.includes('./') ? `url(${card.flag.replace('./', '')})` : `url(https://www.nationstates.net/images/cards/s3/${card.flag})`};`}
 								></div>
 							</div>
 						</div>
@@ -57,10 +57,7 @@
 							{/each}
 						</div>
 						<div class="trophies">
-							<Badges
-								cardBadges={card.badges}
-								cardTrophies={Object.keys(card.trophies)}
-							/>
+							<Badges cardBadges={card.badges} cardTrophies={Object.keys(card.trophies)} />
 						</div>
 					</div>
 					<div class="s3-lower">

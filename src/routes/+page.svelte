@@ -23,7 +23,7 @@
 	import Head from '../components/Head.svelte';
 	import { page } from '$app/stores';
 
-	let clauses: Array<Clause> = [emptyClause("")];
+	let clauses: Array<Clause> = [emptyClause('')];
 	let qualifier = 'AND';
 	let selectValue = 'S3';
 	let queryWhereValue = '*';
@@ -34,43 +34,66 @@
 	let bids: string = '';
 	let currentPage = 1;
 	let clauseHistory: string[] = [];
-	let errorMessage = "";
+	let errorMessage = '';
 	let clauseAsString: any[];
 
 	onMount(() => {
-		queryWhereValue = $page.url.searchParams.has('select') && $page.url.searchParams.get('select') === "all" ? "*" : $page.url.searchParams.get('select') === "min" ? "id, name, season" : "*";
-		selectValue = $page.url.searchParams.get('from') || "S3";
-		const testBuildClauses = $page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null ? $page.url.searchParams.get('clauses')!.split(',').map((clause: string) => {
-			const clauser = clause.split('-')
-			return {
-				qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : "",
-				whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
-				conditionValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[2] : clauser[1],
-				badgeTrophyValue: "",
-				input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
-				trophyPercentage: ['OR', 'AND'].includes(clauser[0]) ? clauser[4] ? clauser[4] : "" : clauser[3] ? clauser[3] : "",
-			}
-		}) : []
-		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause("")]
-		clauseHistory = localStorage.getItem("clauses") ? JSON.parse(localStorage.getItem("clauses")!) : [];
-	})
+		queryWhereValue =
+			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'all'
+				? '*'
+				: $page.url.searchParams.get('select') === 'min'
+					? 'id, name, season'
+					: '*';
+		selectValue = $page.url.searchParams.get('from') || 'S3';
+		const testBuildClauses =
+			$page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null
+				? $page.url.searchParams
+						.get('clauses')!
+						.split(',')
+						.map((clause: string) => {
+							const clauser = clause.split('-');
+							return {
+								qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : '',
+								whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
+								conditionValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[2] : clauser[1],
+								badgeTrophyValue: '',
+								input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
+								trophyPercentage: ['OR', 'AND'].includes(clauser[0])
+									? clauser[4]
+										? clauser[4]
+										: ''
+									: clauser[3]
+										? clauser[3]
+										: ''
+							};
+						})
+				: [];
+		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause('')];
+		clauseHistory = localStorage.getItem('clauses')
+			? JSON.parse(localStorage.getItem('clauses')!)
+			: [];
+	});
 
 	async function buildQuery(event: Event) {
 		event.preventDefault();
-		errorMessage = "";
+		errorMessage = '';
 		clauseAsString = clauses.map((clause, i) => {
-			return `${clause.qualifier}${i > 0 ? '-' : ""}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
-		})
-		pushHistory(`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`)
+			return `${clause.qualifier}${i > 0 ? '-' : ''}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`;
+		});
+		pushHistory(
+			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
+		);
 		if (localStorage.getItem('clauses') !== null) {
-			const newClauseString = `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`;
+			const newClauseString = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`;
 			if (!clauseHistory.includes(newClauseString)) {
-					clauseHistory = [...clauseHistory, newClauseString]
+				clauseHistory = [...clauseHistory, newClauseString];
 			}
-			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory));
 		} else {
-			clauseHistory = [`?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`]
-			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
+			clauseHistory = [
+				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
+			];
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory));
 		}
 		let cardsToPass: Array<{ CARDID: number; SEASON: number }> = [];
 		if (decks || collections || bids) {
@@ -83,7 +106,9 @@
 		}
 
 		try {
-			const response = await fetch(`${PUBLIC_API_URL}/api?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}`);
+			const response = await fetch(
+				`${PUBLIC_API_URL}/api?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
+			);
 
 			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
@@ -102,7 +127,7 @@
 		} catch (error: unknown) {
 			console.error('Error:', error);
 			if (error instanceof Error) {
-				errorMessage = "An error occured: with " + error.message;
+				errorMessage = 'An error occured: with ' + error.message;
 			}
 		}
 	}
@@ -111,7 +136,7 @@
 	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex);
 </script>
 
-<Head title={`Queries`} description={"Query cards from the NationStates card game"} />
+<Head title={`Queries`} description={'Query cards from the NationStates card game'} />
 
 <form on:submit={buildQuery} class="font-main flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center">
@@ -128,8 +153,10 @@
 			bind:value={qualifier}><option>AND</option><option>OR</option></select
 		>
 		clause
-		<button class="p-2 bg-blue-400 rounded-md w-18 m-auto" type="button" on:click={() => (clauses = [...clauses, emptyClause(qualifier)])}
-			>+</button
+		<button
+			class="p-2 bg-blue-400 rounded-md w-18 m-auto"
+			type="button"
+			on:click={() => (clauses = [...clauses, emptyClause(qualifier)])}>+</button
 		>
 	</div>
 	<p>WHERE</p>
@@ -145,25 +172,44 @@
 			{#if clause.qualifier}
 				<p class="w-12 text-center">{clause.qualifier}</p>
 			{/if}
-			<GenericSelect bind:bindValue={clause.whereValue} optionsIterable={selectValue === 'S1' ? parameters : parameters.filter((param) => param !== 'exnation')} />
+			<GenericSelect
+				bind:bindValue={clause.whereValue}
+				optionsIterable={selectValue === 'S1'
+					? parameters
+					: parameters.filter((param) => param !== 'exnation')}
+			/>
 			{#if clause.whereValue !== 'exnation'}
 				{#if ['badges', 'trophies'].includes(clause.whereValue)}
 					<p>JSON_EXTRACT {clause.whereValue}</p>
-					<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={['IS', 'IS NOT', 'HAS NO']} />
+					<GenericSelect
+						bind:bindValue={clause.conditionValue}
+						optionsIterable={['IS', 'IS NOT', 'HAS NO']}
+					/>
 					{#if clause.conditionValue !== 'HAS NO'}
 						{#if clause.whereValue === 'badges'}
 							<GenericSelect bind:bindValue={clause.input} optionsIterable={badges} />
 						{/if}
 						{#if clause.whereValue === 'trophies'}
 							<GenericSelect bind:bindValue={clause.input} optionsIterable={trophies} />
-							<GenericSelect bind:bindValue={clause.trophyPercentage} optionsIterable={['1T', '1', '5', '10']} />
+							<GenericSelect
+								bind:bindValue={clause.trophyPercentage}
+								optionsIterable={['1T', '1', '5', '10']}
+							/>
 						{/if}
 					{:else}
 						<p>badges</p>
 					{/if}
 				{/if}
 				{#if !['badges', 'trophies'].includes(clause.whereValue)}
-					<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={clause.whereValue !== 'flag' && !['cardcategory', 'category'].includes(clause.whereValue) ? ['IS', 'IS NOT', 'LIKE', 'NOT LIKE'] : clause.whereValue === 'flag' ? ['LIKE', 'NOT LIKE'] : ['IS', 'IS NOT']} />
+					<GenericSelect
+						bind:bindValue={clause.conditionValue}
+						optionsIterable={clause.whereValue !== 'flag' &&
+						!['cardcategory', 'category'].includes(clause.whereValue)
+							? ['IS', 'IS NOT', 'LIKE', 'NOT LIKE']
+							: clause.whereValue === 'flag'
+								? ['LIKE', 'NOT LIKE']
+								: ['IS', 'IS NOT']}
+					/>
 					{#if clause.whereValue === 'flag'}
 						<GenericSelect bind:bindValue={clause.input} optionsIterable={flags} />
 					{:else if clause.whereValue === 'cardcategory'}
@@ -178,27 +224,37 @@
 					{/if}
 				{/if}
 			{:else}
-				<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={["IS"]} />
-				<GenericSelect bind:bindValue={clause.input} optionsIterable={["TRUE", "FALSE"]} />
+				<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={['IS']} />
+				<GenericSelect bind:bindValue={clause.input} optionsIterable={['TRUE', 'FALSE']} />
 			{/if}
 		</div>
 	{/each}
-		<div class="flex gap-2 my-8">
-			<input type="checkbox" id="clientCards" name="clientCards" value={showClient} on:change={() => {
-				showClient = !showClient
+	<div class="flex gap-2 my-8">
+		<input
+			type="checkbox"
+			id="clientCards"
+			name="clientCards"
+			value={showClient}
+			on:change={() => {
+				showClient = !showClient;
 				if (showClient === false) {
-					ua = ""
-					decks = ""
-					collections = ""
-					bids = ""
+					ua = '';
+					decks = '';
+					collections = '';
+					bids = '';
 				}
-			}}>
-			<label for="clientCards">Check with decks, collections, and bids</label><br>
-		</div>
+			}}
+		/>
+		<label for="clientCards">Check with decks, collections, and bids</label><br />
+	</div>
 	{#if showClient === true}
-		<ClientCards bind:ua={ua} bind:decks={decks} bind:collections={collections} bind:bids={bids} />
+		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
-	<button data-umami-event="Query computed" class="p-2 bg-blue-400 rounded-md w-36 m-auto" type="submit">Compute</button>
+	<button
+		data-umami-event="Query computed"
+		class="p-2 bg-blue-400 rounded-md w-36 m-auto"
+		type="submit">Compute</button
+	>
 </form>
 
 {#if errorMessage}
@@ -206,8 +262,16 @@
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-<button data-umami-event="Results downloaded" class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
-<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
+	<button
+		data-umami-event="Results downloaded"
+		class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
+		on:click={() =>
+			downloadCSV(
+				returnedItems,
+				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+			)}>Download</button
+	>
+	<Pagination bind:currentPage {returnedItems} />
 	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
 			{#if card.season !== 3}
@@ -217,9 +281,18 @@
 			{/if}
 		{/each}
 	</div>
+	<Pagination bind:currentPage {returnedItems} />
 {:else if !errorMessage && returnedItems[0]}
-	<Pagination bind:currentPage={currentPage} returnedItems={returnedItems} />
-	<button data-umami-event="Results downloaded" class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto" on:click={() => downloadCSV(returnedItems, `?select=${queryWhereValue === "*" ? "all" : "min"}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`)}>Download</button>
+	<Pagination bind:currentPage {returnedItems} />
+	<button
+		data-umami-event="Results downloaded"
+		class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
+		on:click={() =>
+			downloadCSV(
+				returnedItems,
+				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+			)}>Download</button
+	>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
@@ -228,6 +301,7 @@
 			</a>
 		{/each}
 	</div>
+	<Pagination bind:currentPage {returnedItems} />
 {/if}
 
-<PreviousQueries bind:clauseHistory={clauseHistory} />
+<PreviousQueries bind:clauseHistory />
