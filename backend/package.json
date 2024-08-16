@@ -16,6 +16,7 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "ioredis": "^5.4.1",
+    "node-cron": "^3.0.3",
     "pino": "^9.3.2"
   },
   "keywords": [],
