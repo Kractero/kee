@@ -131,7 +131,7 @@ app.get('/api', limiter, async (req, res) => {
 			if (card.trophies) {
 				card.trophies = JSON.parse(card.trophies);
 			}
-			card.cte = cardsCteStatus[card.name];
+			card.cte = cardsCteStatus[String(card.id)];
 		});
 
 		res.send(getCardsFromDB);
