@@ -1,4 +1,3 @@
-import Database from 'better-sqlite3';
 import express from 'express';
 import cors from 'cors';
 import { trophies } from './trophies.js';
@@ -8,6 +7,7 @@ import { getOrSetToCache } from './getOrSetToCache.js';
 import { logger } from './logger.js';
 import 'dotenv/config.js';
 import { schedule } from 'node-cron';
+import { getDatabase } from './db.js';
 
 const port = process.env.PORT || 3000;
 
@@ -59,7 +59,7 @@ app.use(compression());
 
 app.get('/api', limiter, async (req, res) => {
 	try {
-		const db = new Database('cards.db');
+		const db = getDatabase();
 		let query = '';
 		if (req.query.select && ['all', 'min'].includes(req.query.select)) {
 			if (req.query.select === 'all') query += `SELECT *`;
@@ -135,8 +135,6 @@ app.get('/api', limiter, async (req, res) => {
 		});
 
 		res.send(getCardsFromDB);
-
-		db.close();
 	} catch (err) {
 		logger.error(
 			{
@@ -154,4 +152,14 @@ app.get('/health', async (req, res) => {
 
 app.listen(port, () => {
 	logger.info(`App started and listening on ${port}`);
+});
+
+process.on('SIGINT', () => {
+	logger.info('SIGINT signal received: closing database connection.');
+	const db = getDatabase();
+	if (db) {
+		db.close();
+		logger.info('Database connection closed.');
+	}
+	process.exit(0);
 });
