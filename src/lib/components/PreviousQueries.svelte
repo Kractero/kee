@@ -20,6 +20,7 @@
 					<Trash class="hover:cursor-pointer" />
 				</button>
 				<a
+					target="_self"
 					class="line-clamp-2 hover:text-purple-700 hover:cursor-pointer flex-1 text-right"
 					href={`${PUBLIC_URL}/${clause}`}>{clause}</a
 				>

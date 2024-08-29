@@ -5,7 +5,7 @@
 	export let bids: string;
 </script>
 
-<p class="w-80">
+<p class="w-80 text-center">
 	This will pipe the output of the query against either the specified nation's deck/bids or the
 	combined sum of the collections
 </p>

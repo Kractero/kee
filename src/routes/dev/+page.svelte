@@ -1,10 +1,10 @@
 <script>
-	import Head from '../../components/Head.svelte';
-	import S1S2Card from '../../components/S1S2Card.svelte';
-	import S3Card from '../../components/S3Card.svelte';
+	import Head from '$lib/components/Head.svelte';
+	import S1S2Card from '$lib/components/S1S2Card.svelte';
+	import S3Card from '$lib/components/S3Card.svelte';
 </script>
 
-<Head title={`Queries - Dev}`} description={"Query cards from the NationStates card game"} />
+<Head title={`Queries - Dev}`} description={'Query cards from the NationStates card game'} />
 
 <div class="flex flex-wrap justify-center">
 	<S1S2Card
@@ -20,7 +20,8 @@
 			name: 'SvelteKit',
 			region: 'Svelte',
 			season: 2,
-			type: 'Web Framework'
+			type: 'Web Framework',
+			cte: false
 		}}
 		opt="SvelteKit is built on Svelte, a UI framework that uses a compiler to let you write breathtakingly concise components that do minimal work in the browser, using languages you already know — HTML, CSS and JavaScript. It's a love letter to web development."
 		url="https://kit.svelte.dev/"
@@ -38,7 +39,8 @@
 			name: 'TailwindCSS',
 			region: 'Tailwind Labs',
 			season: 2,
-			type: 'CSS Utility'
+			type: 'CSS Utility',
+			cte: false
 		}}
 		opt="A utility-first CSS framework packed with classes like flex, pt-4, text-center and rotate-90 that can be composed to build any design, directly in your markup."
 		url="https://tailwindcss.com/"
@@ -56,7 +58,8 @@
 			name: 'shadcn/ui',
 			region: 'shadcn',
 			season: 2,
-			type: 'CSS Components'
+			type: 'CSS Components',
+			cte: false
 		}}
 		opt="Beautifully designed components that you can copy and paste into your apps. Accessible. Customizable. Open Source."
 		url="https://ui.shadcn.com/"
@@ -76,7 +79,8 @@
 			name: 'SQLite',
 			region: 'SQLite Consortium',
 			season: 1,
-			type: 'Database'
+			type: 'Database',
+			cte: false
 		}}
 		opt="SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world. SQLite is built into all mobile phones and most computers and comes bundled inside countless other applications that people use every day."
 		url="https://www.sqlite.org/index.html"
@@ -94,7 +98,8 @@
 			name: 'Redis',
 			region: 'Redis Ltd',
 			season: 1,
-			type: 'In-Memory Data Store'
+			type: 'In-Memory Data Store',
+			cte: false
 		}}
 		opt="The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker."
 		url="https://redis.io/"
@@ -112,7 +117,8 @@
 			name: 'Express',
 			region: 'Node.js Foundation',
 			season: 1,
-			type: 'Node.js Web Framework'
+			type: 'Node.js Web Framework',
+			cte: false
 		}}
 		opt="Express is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications."
 		url="https://expressjs.com/"
@@ -132,7 +138,8 @@
 			name: 'Docker',
 			region: 'Docker Inc',
 			season: 3,
-			type: 'Virtualization'
+			type: 'Virtualization',
+			cte: false
 		}}
 		opt="Accelerate how you build, share, and run modern applications. Docker makes development efficient and predictable."
 		url="https://www.docker.com/"
@@ -150,7 +157,8 @@
 			name: 'GitHub Actions',
 			region: 'GitHub',
 			season: 3,
-			type: 'Development Workflow'
+			type: 'Development Workflow',
+			cte: false
 		}}
 		opt="GitHub Actions makes it easy to automate all your software workflows, now with world-class CI/CD."
 		url="https://docs.github.com/en/actions"
@@ -168,7 +176,8 @@
 			name: 'Hetzner',
 			region: 'Hetzner',
 			season: 3,
-			type: 'Virtual Private Server'
+			type: 'Virtual Private Server',
+			cte: false
 		}}
 		opt="A little money gets you lots of cloud. Flexible cloud servers with high-end-hardware."
 		url="https://www.hetzner.com/"

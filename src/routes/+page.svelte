@@ -57,7 +57,7 @@
 								conditionValue: clauser[1] || clauser[0],
 								input: clauser[2] || clauser[1],
 								badgeTrophyValue: '',
-								trophyPercentage: clauser[3] || clauser[2]
+								trophyPercentage: clauser[0] === 'trophies' ? clauser[3] : ''
 							};
 						})
 				: [];
@@ -82,6 +82,7 @@
 			$page.url.searchParams.has('bids') && $page.url.searchParams.get('bids') !== null
 				? $page.url.searchParams.get('bids')!
 				: '';
+
 		// await buildQuery();
 	});
 
@@ -235,17 +236,20 @@
 			id="clientCards"
 			name="clientCards"
 			value={showClient}
-			checked={ua !== '' && (decks !== '' || collections !== '' || bids !== '')}
+			on:change={() => {
+				showClient = !showClient;
+			}}
+			checked={showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== ''))}
 		/>
 		<label for="clientCards">Check with decks, collections, and bids</label><br />
 	</div>
-	{#if ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true}
+	{#if showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
 		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
 	<div class="space-x-4 mt-8">
 		<Button data-umami-event="Query computed" type="submit">Compute</Button>
 		<Button
-			disabled={!(!errorMessage && returnedItems[0] && returnedItems[0].cardcategory)}
+			disabled={!(!errorMessage && returnedItems[0])}
 			data-umami-event="Results downloaded"
 			type="submit"
 			on:click={() =>
@@ -275,15 +279,6 @@
 	<Pagination bind:currentPage bind:returnedItems />
 {:else if !errorMessage && returnedItems[0]}
 	<Pagination bind:currentPage bind:returnedItems />
-	<button
-		data-umami-event="Results downloaded"
-		class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
-		on:click={() =>
-			downloadCSV(
-				returnedItems,
-				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
-			)}>Download</button
-	>
 	<div class="flex flex-col dark:text-white">
 		{#each currentCards as card}
 			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>

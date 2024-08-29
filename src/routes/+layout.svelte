@@ -7,7 +7,7 @@
 </script>
 
 <ModeWatcher />
-<main class="flex min-h-screen flex-col items-center font-sans">
+<main class="flex min-h-screen flex-col items-center font-sans mb-40">
 	<header class="mb-10 flex flex-col items-center justify-center pt-40">
 		<h2 class="text-5xl font-bold">Card <span class="text-purple-700">Queries</span></h2>
 		<div class="mt-4 flex">
