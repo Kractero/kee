@@ -23,7 +23,6 @@
 	import Head from '$lib/components/Head.svelte';
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Home, Notebook } from 'lucide-svelte';
 
 	let clauses: Array<Clause> = [emptyClause()];
 	let selectValue = 'S3';
@@ -66,6 +65,23 @@
 		clauseHistory = localStorage.getItem('clauses')
 			? JSON.parse(localStorage.getItem('clauses')!)
 			: [];
+		ua =
+			$page.url.searchParams.has('ua') && $page.url.searchParams.get('ua') !== null
+				? $page.url.searchParams.get('ua')!
+				: '';
+		decks =
+			$page.url.searchParams.has('decks') && $page.url.searchParams.get('decks') !== null
+				? $page.url.searchParams.get('decks')!
+				: '';
+		collections =
+			$page.url.searchParams.has('collections') &&
+			$page.url.searchParams.get('collections') !== null
+				? $page.url.searchParams.get('collections')!
+				: '';
+		bids =
+			$page.url.searchParams.has('bids') && $page.url.searchParams.get('bids') !== null
+				? $page.url.searchParams.get('bids')!
+				: '';
 		// await buildQuery();
 	});
 
@@ -76,7 +92,7 @@
 			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`;
 		});
 		pushHistory(
-			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
+			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
 		);
 		if (localStorage.getItem('clauses') !== null) {
 			const newClauseString = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`;
@@ -142,8 +158,7 @@
 	</div>
 
 	<div class="items-center flex gap-2 m-auto">
-		<p>Add new</p>
-		AND clause
+		<p>Add new clause</p>
 		<Button type="button" on:click={() => (clauses = [...clauses, emptyClause()])}>+</Button>
 	</div>
 	<p>WHERE</p>
@@ -220,19 +235,11 @@
 			id="clientCards"
 			name="clientCards"
 			value={showClient}
-			on:change={() => {
-				showClient = !showClient;
-				if (showClient === false) {
-					ua = '';
-					decks = '';
-					collections = '';
-					bids = '';
-				}
-			}}
+			checked={ua !== '' && (decks !== '' || collections !== '' || bids !== '')}
 		/>
 		<label for="clientCards">Check with decks, collections, and bids</label><br />
 	</div>
-	{#if showClient === true}
+	{#if ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true}
 		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
 	<div class="space-x-4 mt-8">
