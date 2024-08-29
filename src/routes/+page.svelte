@@ -7,24 +7,25 @@
 	import { parameters } from '$lib/parameters';
 	import { trophies } from '$lib/trophies';
 	import type { Card, Clause } from '$lib/types';
-	import S1S2Card from '../components/S1S2Card.svelte';
-	import S3Card from '../components/S3Card.svelte';
+	import S1S2Card from '$lib/components/S1S2Card.svelte';
+	import S3Card from '$lib/components/S3Card.svelte';
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { pushHistory } from '$lib/helpers/pushHistory';
 	import { onMount } from 'svelte';
 
 	let showClient = false;
 	import { downloadCSV } from '$lib/helpers/download';
-	import PreviousQueries from '../components/PreviousQueries.svelte';
-	import Pagination from '../components/Pagination.svelte';
-	import GenericSelect from '../components/GenericSelect.svelte';
-	import ClientCards from '../components/ClientCards.svelte';
+	import PreviousQueries from '$lib/components/PreviousQueries.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
+	import GenericSelect from '$lib/components/GenericSelect.svelte';
+	import ClientCards from '$lib/components/ClientCards.svelte';
 	import { emptyClause } from '$lib/emptyClause';
-	import Head from '../components/Head.svelte';
+	import Head from '$lib/components/Head.svelte';
 	import { page } from '$app/stores';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { Home, Notebook } from 'lucide-svelte';
 
-	let clauses: Array<Clause> = [emptyClause('')];
-	let qualifier = 'AND';
+	let clauses: Array<Clause> = [emptyClause()];
 	let selectValue = 'S3';
 	let queryWhereValue = '*';
 	let returnedItems: Card[] = [];
@@ -37,7 +38,7 @@
 	let errorMessage = '';
 	let clauseAsString: any[];
 
-	onMount(() => {
+	onMount(async () => {
 		queryWhereValue =
 			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'all'
 				? '*'
@@ -53,32 +54,26 @@
 						.map((clause: string) => {
 							const clauser = clause.split('-');
 							return {
-								qualifier: ['OR', 'AND'].includes(clauser[0]) ? clauser[0] : '',
-								whereValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[1] : clauser[0],
-								conditionValue: ['OR', 'AND'].includes(clauser[0]) ? clauser[2] : clauser[1],
+								whereValue: clauser[0] || '',
+								conditionValue: clauser[1] || clauser[0],
+								input: clauser[2] || clauser[1],
 								badgeTrophyValue: '',
-								input: ['OR', 'AND'].includes(clauser[0]) ? clauser[3] : clauser[2],
-								trophyPercentage: ['OR', 'AND'].includes(clauser[0])
-									? clauser[4]
-										? clauser[4]
-										: ''
-									: clauser[3]
-										? clauser[3]
-										: ''
+								trophyPercentage: clauser[3] || clauser[2]
 							};
 						})
 				: [];
-		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause('')];
+		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause()];
 		clauseHistory = localStorage.getItem('clauses')
 			? JSON.parse(localStorage.getItem('clauses')!)
 			: [];
+		// await buildQuery();
 	});
 
-	async function buildQuery(event: Event) {
-		event.preventDefault();
+	async function buildQuery(event?: Event) {
+		if (event) event.preventDefault();
 		errorMessage = '';
 		clauseAsString = clauses.map((clause, i) => {
-			return `${clause.qualifier}${i > 0 ? '-' : ''}${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`;
+			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`;
 		});
 		pushHistory(
 			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
@@ -138,7 +133,7 @@
 
 <Head title={`Queries`} description={'Query cards from the NationStates card game'} />
 
-<form on:submit={buildQuery} class="font-main flex flex-col items-center gap-4 mb-8">
+<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center">
 		<p>SELECT</p>
 		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['*', 'id, name, season']} />
@@ -146,32 +141,22 @@
 		<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3']} />
 	</div>
 
-	<div class="items-center flex gap-2 w-80">
+	<div class="items-center flex gap-2 m-auto">
 		<p>Add new</p>
-		<select
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white max-w-36"
-			bind:value={qualifier}><option>AND</option><option>OR</option></select
-		>
-		clause
-		<button
-			class="p-2 bg-blue-400 rounded-md w-18 m-auto"
-			type="button"
-			on:click={() => (clauses = [...clauses, emptyClause(qualifier)])}>+</button
-		>
+		AND clause
+		<Button type="button" on:click={() => (clauses = [...clauses, emptyClause()])}>+</Button>
 	</div>
 	<p>WHERE</p>
 	{#each clauses as clause, i}
 		<div class="flex gap-2 items-center">
 			{#if i > 0}
-				<button
-					class="p-2 bg-red-400 rounded-md w-18 m-auto"
+				<Button
+					variant="destructive"
 					type="button"
-					on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</button
+					on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</Button
 				>
 			{/if}
-			{#if clause.qualifier}
-				<p class="w-12 text-center">{clause.qualifier}</p>
-			{/if}
+			<p class="w-12 text-center">AND</p>
 			<GenericSelect
 				bind:bindValue={clause.whereValue}
 				optionsIterable={selectValue === 'S1'
@@ -229,7 +214,7 @@
 			{/if}
 		</div>
 	{/each}
-	<div class="flex gap-2 my-8">
+	<div class="flex gap-2 mt-8">
 		<input
 			type="checkbox"
 			id="clientCards"
@@ -250,28 +235,27 @@
 	{#if showClient === true}
 		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
-	<button
-		data-umami-event="Query computed"
-		class="p-2 bg-blue-400 rounded-md w-36 m-auto"
-		type="submit">Compute</button
-	>
+	<div class="space-x-4 mt-8">
+		<Button data-umami-event="Query computed" type="submit">Compute</Button>
+		<Button
+			disabled={!(!errorMessage && returnedItems[0] && returnedItems[0].cardcategory)}
+			data-umami-event="Results downloaded"
+			type="submit"
+			on:click={() =>
+				downloadCSV(
+					returnedItems,
+					`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+				)}>Download</Button
+		>
+	</div>
 </form>
 
 {#if errorMessage}
-	<p class="font-main">{errorMessage}</p>
+	<p>{errorMessage}</p>
 {/if}
 
 {#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-	<button
-		data-umami-event="Results downloaded"
-		class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
-		on:click={() =>
-			downloadCSV(
-				returnedItems,
-				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
-			)}>Download</button
-	>
-	<Pagination bind:currentPage {returnedItems} />
+	<Pagination bind:currentPage bind:returnedItems />
 	<div class="flex flex-wrap justify-center">
 		{#each currentCards as card}
 			{#if card.season !== 3}
@@ -281,12 +265,12 @@
 			{/if}
 		{/each}
 	</div>
-	<Pagination bind:currentPage {returnedItems} />
+	<Pagination bind:currentPage bind:returnedItems />
 {:else if !errorMessage && returnedItems[0]}
-	<Pagination bind:currentPage {returnedItems} />
+	<Pagination bind:currentPage bind:returnedItems />
 	<button
 		data-umami-event="Results downloaded"
-		class="font-main mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
+		class="mt-8 mb-8 p-2 bg-blue-400 rounded-md w-36 m-auto"
 		on:click={() =>
 			downloadCSV(
 				returnedItems,
@@ -301,7 +285,7 @@
 			</a>
 		{/each}
 	</div>
-	<Pagination bind:currentPage {returnedItems} />
+	<Pagination bind:currentPage bind:returnedItems />
 {/if}
 
 <PreviousQueries bind:clauseHistory />
