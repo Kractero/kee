@@ -1,11 +1,7 @@
 @font-face {
-  font-display: swap;
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 400;
+  font-family: "Noto Sans";
   src:
-    url("./inter-v13-latin-regular.woff2") format("woff2"),
-      url("./inter-v13-latin-regular.ttf") format("truetype");
+    url("./noto-sans-latin-ext-400-normal.woff2") format("woff2"),
 }
 
 @tailwind base;
