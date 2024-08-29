@@ -21,7 +21,6 @@
 				</button>
 				<a
 					class="line-clamp-2 hover:text-purple-700 hover:cursor-pointer flex-1 text-right"
-					target="_blank"
 					href={`${PUBLIC_URL}/${clause}`}>{clause}</a
 				>
 			</div>
