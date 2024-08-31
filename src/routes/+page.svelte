@@ -164,6 +164,9 @@
 	</div>
 	<p>WHERE</p>
 	{#each clauses as clause, i}
+		{#if i > 0}
+			<p class="w-12 text-center">AND</p>
+		{/if}
 		<div class="flex gap-2 items-center">
 			{#if i > 0}
 				<Button
@@ -172,7 +175,6 @@
 					on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</Button
 				>
 			{/if}
-			<p class="w-12 text-center">AND</p>
 			<GenericSelect
 				bind:bindValue={clause.whereValue}
 				optionsIterable={selectValue === 'S1'
