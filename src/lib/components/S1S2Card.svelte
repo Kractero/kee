@@ -3,7 +3,7 @@
 	import type { Card } from '$lib/types';
 	import Badges from './Badges.svelte';
 	import S2S3Description from './S2S3Description.svelte';
-
+	import './cards.css'
 	export let card: Card;
 	export let opt: string = '';
 	export let url: string = '';
