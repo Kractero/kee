@@ -3,7 +3,7 @@ import { fontFamily } from 'tailwindcss/defaultTheme';
 /** @type {import('tailwindcss').Config} */
 const config = {
 	darkMode: ['class'],
-	plugins: [require('@tailwindcss/typography')],
+	plugins: [require('@tailwindcss/typography', 'prettier-plugin-tailwindcss')],
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	safelist: ['dark'],
 	theme: {

@@ -1,41 +1,41 @@
 <script lang="ts">
-	import { badges } from '$lib/badges';
-	import { cardcategory } from '$lib/cardcategory';
-	import { category } from '$lib/category';
-	import { flags } from '$lib/flags';
-	import { buildCards } from '$lib/helpers/buildCards';
-	import { parameters } from '$lib/parameters';
-	import { trophies } from '$lib/trophies';
-	import type { Card, Clause } from '$lib/types';
-	import S1S2Card from '$lib/components/S1S2Card.svelte';
-	import S3Card from '$lib/components/S3Card.svelte';
-	import { PUBLIC_API_URL } from '$env/static/public';
-	import { pushHistory } from '$lib/helpers/pushHistory';
-	import { onMount } from 'svelte';
+	import { onMount } from 'svelte'
+	import { page } from '$app/stores'
+	import { PUBLIC_API_URL } from '$env/static/public'
+	import { badges } from '$lib/badges'
+	import { cardcategory } from '$lib/cardcategory'
+	import { category } from '$lib/category'
+	import ClientCards from '$lib/components/ClientCards.svelte'
+	import GenericSelect from '$lib/components/GenericSelect.svelte'
+	import Head from '$lib/components/Head.svelte'
+	import Pagination from '$lib/components/Pagination.svelte'
+	import PreviousQueries from '$lib/components/PreviousQueries.svelte'
+	import S1S2Card from '$lib/components/S1S2Card.svelte'
+	import S3Card from '$lib/components/S3Card.svelte'
+	import Button from '$lib/components/ui/button/button.svelte'
+	import { emptyClause } from '$lib/emptyClause'
+	import { flags } from '$lib/flags'
+	import { buildCards } from '$lib/helpers/buildCards'
+	import { downloadCSV } from '$lib/helpers/download'
+	import { pushHistory } from '$lib/helpers/pushHistory'
+	import { parameters } from '$lib/parameters'
+	import { trophies } from '$lib/trophies'
+	import type { Card, Clause } from '$lib/types'
 
-	let showClient = false;
-	import { downloadCSV } from '$lib/helpers/download';
-	import PreviousQueries from '$lib/components/PreviousQueries.svelte';
-	import Pagination from '$lib/components/Pagination.svelte';
-	import GenericSelect from '$lib/components/GenericSelect.svelte';
-	import ClientCards from '$lib/components/ClientCards.svelte';
-	import { emptyClause } from '$lib/emptyClause';
-	import Head from '$lib/components/Head.svelte';
-	import { page } from '$app/stores';
-	import Button from '$lib/components/ui/button/button.svelte';
+	let showClient = false
 
-	let clauses: Array<Clause> = [emptyClause()];
-	let selectValue = 'S3';
-	let queryWhereValue = '*';
-	let returnedItems: Card[] = [];
-	let ua: string = '';
-	let decks: string = '';
-	let collections: string = '';
-	let bids: string = '';
-	let currentPage = 1;
-	let clauseHistory: string[] = [];
-	let errorMessage = '';
-	let clauseAsString: any[];
+	let clauses: Array<Clause> = [emptyClause()]
+	let selectValue = 'S3'
+	let queryWhereValue = '*'
+	let returnedItems: Card[] = []
+	let ua: string = ''
+	let decks: string = ''
+	let collections: string = ''
+	let bids: string = ''
+	let currentPage = 1
+	let clauseHistory: string[] = []
+	let errorMessage = ''
+	let clauseAsString: any[]
 
 	onMount(async () => {
 		queryWhereValue =
@@ -43,109 +43,109 @@
 				? '*'
 				: $page.url.searchParams.get('select') === 'min'
 					? 'id, name, season'
-					: '*';
-		selectValue = $page.url.searchParams.get('from') || 'S3';
+					: '*'
+		selectValue = $page.url.searchParams.get('from') || 'S3'
 		const testBuildClauses =
 			$page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null
 				? $page.url.searchParams
 						.get('clauses')!
 						.split(',')
 						.map((clause: string) => {
-							const clauser = clause.split('-');
+							const clauser = clause.split('-')
 							return {
 								whereValue: clauser[0] || '',
 								conditionValue: clauser[1] || clauser[0],
 								input: clauser[2] || clauser[1],
 								badgeTrophyValue: '',
-								trophyPercentage: clauser[0] === 'trophies' ? clauser[3] : ''
-							};
+								trophyPercentage: clauser[0] === 'trophies' ? clauser[3] : '',
+							}
 						})
-				: [];
-		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause()];
+				: []
+		clauses = testBuildClauses.length > 0 ? [...testBuildClauses] : [emptyClause()]
 		clauseHistory = localStorage.getItem('clauses')
 			? JSON.parse(localStorage.getItem('clauses')!)
-			: [];
+			: []
 		ua =
 			$page.url.searchParams.has('ua') && $page.url.searchParams.get('ua') !== null
 				? $page.url.searchParams.get('ua')!
-				: '';
+				: ''
 		decks =
 			$page.url.searchParams.has('decks') && $page.url.searchParams.get('decks') !== null
 				? $page.url.searchParams.get('decks')!
-				: '';
+				: ''
 		collections =
 			$page.url.searchParams.has('collections') &&
 			$page.url.searchParams.get('collections') !== null
 				? $page.url.searchParams.get('collections')!
-				: '';
+				: ''
 		bids =
 			$page.url.searchParams.has('bids') && $page.url.searchParams.get('bids') !== null
 				? $page.url.searchParams.get('bids')!
-				: '';
+				: ''
 
 		// await buildQuery();
-	});
+	})
 
 	async function buildQuery(event?: Event) {
-		if (event) event.preventDefault();
-		errorMessage = '';
+		if (event) event.preventDefault()
+		errorMessage = ''
 		clauseAsString = clauses.map((clause, i) => {
-			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`;
-		});
+			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
+		})
 		pushHistory(
 			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
-		);
+		)
 		if (localStorage.getItem('clauses') !== null) {
-			const newClauseString = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`;
+			const newClauseString = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
 			if (!clauseHistory.includes(newClauseString)) {
-				clauseHistory = [...clauseHistory, newClauseString];
+				clauseHistory = [...clauseHistory, newClauseString]
 			}
-			localStorage.setItem('clauses', JSON.stringify(clauseHistory));
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		} else {
 			clauseHistory = [
-				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
-			];
-			localStorage.setItem('clauses', JSON.stringify(clauseHistory));
+				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
+			]
+			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		}
-		let cardsToPass: Array<{ CARDID: number; SEASON: number }> = [];
+		let cardsToPass: Array<{ CARDID: number; SEASON: number }> = []
 		if (decks || collections || bids) {
 			cardsToPass = await buildCards(
 				ua,
 				collections.split(',') || [],
 				decks.split(',') || [],
 				bids.split(',') || []
-			);
+			)
 		}
 
 		try {
 			const response = await fetch(
 				`${PUBLIC_API_URL}/api?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
-			);
+			)
 
-			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
-			let data = await response.json();
+			let data = await response.json()
 
 			if (cardsToPass) {
 				data = data.filter((card: { id: number; season: number }) => {
 					return !cardsToPass.some(
-						(collectionCard) =>
+						collectionCard =>
 							collectionCard.CARDID === card.id && collectionCard.SEASON === card.season
-					);
-				});
+					)
+				})
 			}
 
-			returnedItems = data;
+			returnedItems = data
 		} catch (error: unknown) {
-			console.error('Error:', error);
+			console.error('Error:', error)
 			if (error instanceof Error) {
-				errorMessage = 'An error occured: with ' + error.message;
+				errorMessage = 'An error occured: with ' + error.message
 			}
 		}
 	}
-	$: lastPostIndex = currentPage * 25;
-	$: firstPostIndex = lastPostIndex - 25;
-	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex);
+	$: lastPostIndex = currentPage * 25
+	$: firstPostIndex = lastPostIndex - 25
+	$: currentCards = returnedItems.slice(firstPostIndex, lastPostIndex)
 </script>
 
 <Head title={`Queries`} description={'Query cards from the NationStates card game'} />
@@ -179,7 +179,7 @@
 				bind:bindValue={clause.whereValue}
 				optionsIterable={selectValue === 'S1'
 					? parameters
-					: parameters.filter((param) => param !== 'exnation')}
+					: parameters.filter(param => param !== 'exnation')}
 			/>
 			{#if clause.whereValue !== 'exnation'}
 				{#if ['badges', 'trophies'].includes(clause.whereValue)}
@@ -239,7 +239,7 @@
 			name="clientCards"
 			value={showClient}
 			on:change={() => {
-				showClient = !showClient;
+				showClient = !showClient
 			}}
 			checked={showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== ''))}
 		/>
@@ -249,10 +249,9 @@
 		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
 	<div class="space-x-4 mt-8">
-		<Button data-umami-event="Query computed" type="submit">Compute</Button>
+		<Button type="submit">Compute</Button>
 		<Button
 			disabled={!(!errorMessage && returnedItems[0])}
-			data-umami-event="Results downloaded"
 			type="submit"
 			on:click={() =>
 				downloadCSV(
