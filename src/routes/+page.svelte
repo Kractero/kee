@@ -119,7 +119,12 @@
 
 		try {
 			const response = await fetch(
-				`${PUBLIC_API_URL}/api?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
+				`${PUBLIC_API_URL}/api?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
+				{
+					headers: {
+						'X-Origin': 'frontend',
+					},
+				}
 			)
 
 			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
@@ -219,6 +224,8 @@
 						<GenericSelect bind:bindValue={clause.input} optionsIterable={cardcategory} />
 					{:else if clause.whereValue === 'category'}
 						<GenericSelect bind:bindValue={clause.input} optionsIterable={category} />
+					{:else if clause.whereValue === 'status'}
+						<GenericSelect bind:bindValue={clause.input} optionsIterable={['Exists', 'CTE']} />
 					{:else}
 						<input
 							class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
@@ -249,7 +256,11 @@
 		<ClientCards bind:ua bind:decks bind:collections bind:bids />
 	{/if}
 	<div class="space-x-4 mt-8">
-		<Button type="submit">Compute</Button>
+		<Button
+			disabled={clauses.length === 1 &&
+				(clauses[0].whereValue === 'status' || !clauses[0].whereValue)}
+			type="submit">Compute</Button
+		>
 		<Button
 			disabled={!(!errorMessage && returnedItems[0])}
 			type="submit"

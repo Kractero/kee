@@ -9,7 +9,8 @@ export const parameters = [
     'region',
     'cardcategory',
     'badges',
-    'trophies'
+    'trophies',
+    'status'
 ]
 
 //deck
