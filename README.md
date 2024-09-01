@@ -1,29 +1,14 @@
-# Kee
+<div align="center">
+<h1>Card Queries</h1>
 
-Queries is a web application that provides access to a database containing the trading card dumps provided by NationStates.
+![Svelte](https://img.shields.io/badge/svelte-%23f1413d.svg?style=for-the-badge&logo=svelte&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+</div>
+
+Card Queries is a frontend interface that provides access to a database containing the trading card dumps provided by NationStates.
+
+It enables users to retrieve card-related information through various queries. However, specific features related to collections and decks are handled exclusively on the frontend. These functionalities rely on making API calls to NationStates, and to mitigate potential rate-limiting issues, I have chosen to keep these operations on the client-side.
 
 Queries does not aim to replicate or dream to match r3n's card queries, but it does seek to provide similar functionalities by enabling users to retrieve cards based on desired parameters.
 
 The frontend is hosted on github pages while the api is hosted on a hetzner vps.
-
-## 🔧 Local Install
-
-### Frontend Locally
-
-1. Clone the repo `https://github.com/Kractero/kee.git`
-2. CD into installation location.
-3. `npm install`
-4. `npm run dev`
-
-### API Locally
-
-1. Clone the repo `https://github.com/Kractero/kee.git`
-2. CD into installation location.
-3. Install the dumps from [NS S3](https://www.nationstates.net/pages/cardlist_S3.xml.gz), [NS S2](https://www.nationstates.net/pages/cardlist_S2.xml.gz), [NS S1](https://www.nationstates.net/pages/cardlist_S!.xml.gz).
-4. Convert the dumps to JSONL.
-5. Run the python script `python build_db.py` to build the local sqlite database, and then move it into the backend folder.
-6. CD into backend.
-7. `npm install`
-8. `npm run dev`
-
-![Frostleaf](./static/Frostleaf.jpg)

@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { Computer, Home, Notebook } from 'lucide-svelte';
-	import '../app.css';
-	import { ModeWatcher } from 'mode-watcher';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+	import { Computer, Home, Notebook } from 'lucide-svelte'
+
+	import '../app.css'
+
+	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte'
+	import Button from '$lib/components/ui/button/button.svelte'
+	import { ModeWatcher } from 'mode-watcher'
 </script>
 
 <ModeWatcher />
@@ -14,7 +16,6 @@
 			<Button variant="ghost" href="/"><Home class="size-6" /></Button>
 			<ThemeSwitcher />
 			<Button variant="ghost" href="/docs"><Notebook class="size-6" /></Button>
-			<Button variant="ghost" href="/dev"><Computer class="size-6" /></Button>
 			<Button variant="ghost" href="https://github.com/Kractero/kee">
 				<svg
 					class="size-6 dark:invert my-auto"
