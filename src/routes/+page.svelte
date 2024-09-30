@@ -13,10 +13,12 @@
 	import S1S2Card from '$lib/components/S1S2Card.svelte'
 	import S3Card from '$lib/components/S3Card.svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
+	import * as Popover from '$lib/components/ui/popover'
 	import { emptyClause } from '$lib/emptyClause'
 	import { flags } from '$lib/flags'
 	import { buildCards } from '$lib/helpers/buildCards'
 	import { downloadCSV } from '$lib/helpers/download'
+	import { htmlContent } from '$lib/helpers/htmlContent'
 	import { pushHistory } from '$lib/helpers/pushHistory'
 	import { parameters } from '$lib/parameters'
 	import { trophies } from '$lib/trophies'
@@ -36,6 +38,7 @@
 	let clauseHistory: string[] = []
 	let errorMessage = ''
 	let clauseAsString: any[]
+	let dlFileName = ''
 
 	onMount(async () => {
 		queryWhereValue =
@@ -92,19 +95,16 @@
 		clauseAsString = clauses.map((clause, i) => {
 			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
-		pushHistory(
-			`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
-		)
+		let url = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
+		pushHistory(url)
+		dlFileName = url
 		if (localStorage.getItem('clauses') !== null) {
-			const newClauseString = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`
-			if (!clauseHistory.includes(newClauseString)) {
-				clauseHistory = [...clauseHistory, newClauseString]
+			if (!clauseHistory.includes(url)) {
+				clauseHistory = [...clauseHistory, url]
 			}
 			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		} else {
-			clauseHistory = [
-				`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
-			]
+			clauseHistory = [url]
 			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		}
 		let cardsToPass: Array<{ CARDID: number; SEASON: number }> = []
@@ -261,15 +261,43 @@
 				(clauses[0].whereValue === 'status' || !clauses[0].whereValue)}
 			type="submit">Compute</Button
 		>
-		<Button
-			disabled={!(!errorMessage && returnedItems[0])}
-			type="submit"
-			on:click={() =>
-				downloadCSV(
-					returnedItems,
-					`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
-				)}>Download</Button
-		>
+		<Popover.Root>
+			<Popover.Trigger>
+				<Button disabled={!(!errorMessage && returnedItems[0])}>Download</Button></Popover.Trigger
+			>
+			<Popover.Content class="flex flex-col w-min border-none gap-4 -mt-0">
+				<Button
+					disabled={!(!errorMessage && returnedItems[0])}
+					type="submit"
+					on:click={() => {
+						let content = ''
+						returnedItems.forEach(
+							card =>
+								//?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}
+								(content += `<tr><td><p>S${card.season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}">Link to Card</a></p></td></tr>\n`)
+						)
+						const blob = new Blob([htmlContent(content)], { type: 'text/html' })
+						const url = URL.createObjectURL(blob)
+						const a = document.createElement('a')
+						a.href = url
+						a.download = `${dlFileName}.html`
+						document.body.appendChild(a)
+						a.click()
+						document.body.removeChild(a)
+						URL.revokeObjectURL(url)
+					}}>Sheet</Button
+				>
+				<Button
+					disabled={!(!errorMessage && returnedItems[0])}
+					type="submit"
+					on:click={() =>
+						downloadCSV(
+							returnedItems,
+							`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+						)}>CSV</Button
+				>
+			</Popover.Content>
+		</Popover.Root>
 	</div>
 </form>
 
