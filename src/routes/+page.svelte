@@ -290,6 +290,22 @@
 				<Button
 					disabled={!(!errorMessage && returnedItems[0])}
 					type="submit"
+					on:click={() => {
+						let content = returnedItems.map(card => `${card.id}`).join('\n')
+						const blob = new Blob([content], { type: 'text/plain' })
+						const url = URL.createObjectURL(blob)
+						const a = document.createElement('a')
+						a.href = url
+						a.download = `${dlFileName}.txt`
+						document.body.appendChild(a)
+						a.click()
+						document.body.removeChild(a)
+						URL.revokeObjectURL(url)
+					}}>IDs txt</Button
+				>
+				<Button
+					disabled={!(!errorMessage && returnedItems[0])}
+					type="submit"
 					on:click={() =>
 						downloadCSV(
 							returnedItems,
