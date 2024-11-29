@@ -291,7 +291,7 @@
 					disabled={!(!errorMessage && returnedItems[0])}
 					type="submit"
 					on:click={() => {
-						let content = returnedItems.map(card => `${card.id}`).join('\n')
+						let content = returnedItems.map(card => `${card.id},${card.season}`).join('\n')
 						const blob = new Blob([content], { type: 'text/plain' })
 						const url = URL.createObjectURL(blob)
 						const a = document.createElement('a')
