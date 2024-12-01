@@ -1,14 +1,10 @@
 <script lang="ts">
-	export let ua: string;
-	export let decks: string;
-	export let collections: string;
-	export let bids: string;
+	export let ua: string
+	export let decks: string
+	export let collections: string
+	export let bids: string
 </script>
 
-<p class="w-80 text-center">
-	This will pipe the output of the query against either the specified nation's deck/bids or the
-	combined sum of the collections
-</p>
 <div class="w-80 text-left items-center flex gap-2 justify-between">
 	<label for="ua">User Agent</label>
 	<input

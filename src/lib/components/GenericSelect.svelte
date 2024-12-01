@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let bindValue: string;
-	export let optionsIterable: string[];
+	export let bindValue: string
+	export let optionsIterable: string[]
 </script>
 
 <select

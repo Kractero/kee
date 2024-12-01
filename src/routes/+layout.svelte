@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Computer, Home, Notebook } from 'lucide-svelte'
+	import { Home, Notebook } from 'lucide-svelte'
 
 	import '../app.css'
 
@@ -11,7 +11,9 @@
 <ModeWatcher />
 <main class="flex min-h-screen flex-col items-center font-sans mb-40">
 	<header class="mb-10 flex flex-col items-center justify-center pt-40">
-		<h2 class="text-5xl font-bold">Card <span class="text-purple-700">Queries</span></h2>
+		<h2 class="text-5xl font-bold text-center">
+			Card <span class="text-purple-700">Queries</span>
+		</h2>
 		<div class="mt-4 flex">
 			<Button variant="ghost" href="/"><Home class="size-6" /></Button>
 			<ThemeSwitcher />
