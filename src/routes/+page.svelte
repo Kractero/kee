@@ -25,10 +25,12 @@
 	import type { Card, Clause } from '$lib/types'
 
 	let showClient = false
+	let querying = false
+	let loading = false
 
 	let clauses: Array<Clause> = [emptyClause()]
 	let selectValue = 'S3'
-	let queryWhereValue = '*'
+	let queryWhereValue = 'id, name, season'
 	let returnedItems: Card[] = []
 	let ua: string = ''
 	let decks: string = ''
@@ -42,11 +44,11 @@
 
 	onMount(async () => {
 		queryWhereValue =
-			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'all'
-				? '*'
+			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'min'
+				? 'id, name, season'
 				: $page.url.searchParams.get('select') === 'min'
-					? 'id, name, season'
-					: '*'
+					? 'all'
+					: 'id, name, season'
 		selectValue = $page.url.searchParams.get('from') || 'S3'
 		const testBuildClauses =
 			$page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null
@@ -86,16 +88,19 @@
 				? $page.url.searchParams.get('bids')!
 				: ''
 
+		if (ua && (bids || collections || decks)) showClient = true
 		// await buildQuery();
 	})
 
 	async function buildQuery(event?: Event) {
 		if (event) event.preventDefault()
+		querying = true
+		returnedItems = []
 		errorMessage = ''
 		clauseAsString = clauses.map((clause, i) => {
 			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
-		let url = `?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
+		let url = `?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
 		pushHistory(url)
 		dlFileName = url
 		if (localStorage.getItem('clauses') !== null) {
@@ -119,7 +124,7 @@
 
 		try {
 			const response = await fetch(
-				`${PUBLIC_API_URL}/api?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
+				`${PUBLIC_API_URL}/api?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
 				{
 					headers: {
 						'X-Origin': 'frontend',
@@ -155,195 +160,221 @@
 
 <Head title={`Queries`} description={'Query cards from the NationStates card game'} />
 
-<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
-	<div class="flex gap-2 items-center">
-		<p>SELECT</p>
-		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['*', 'id, name, season']} />
-		<p>FROM</p>
-		<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3']} />
-	</div>
-
-	<div class="items-center flex gap-2 m-auto">
-		<p>Add new clause</p>
-		<Button type="button" on:click={() => (clauses = [...clauses, emptyClause()])}>+</Button>
-	</div>
-	<p>WHERE</p>
-	{#each clauses as clause, i}
-		{#if i > 0}
-			<p class="w-12 text-center">AND</p>
-		{/if}
+{#if querying === false}
+	<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 		<div class="flex gap-2 items-center">
+			<p>SELECT</p>
+			<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['id, name, season', '*']} />
+			<p>FROM</p>
+			<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3']} />
+		</div>
+
+		<div class="items-center flex gap-2 m-auto">
+			<p>Add new clause</p>
+			<Button type="button" on:click={() => (clauses = [...clauses, emptyClause()])}>+</Button>
+		</div>
+		<p>WHERE</p>
+		{#each clauses as clause, i}
 			{#if i > 0}
-				<Button
-					variant="destructive"
-					type="button"
-					on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</Button
-				>
+				<p class="w-12 text-center">AND</p>
 			{/if}
-			<GenericSelect
-				bind:bindValue={clause.whereValue}
-				optionsIterable={selectValue === 'S1'
-					? parameters
-					: parameters.filter(param => param !== 'exnation')}
-			/>
-			{#if clause.whereValue !== 'exnation'}
-				{#if ['badges', 'trophies'].includes(clause.whereValue)}
-					<p>JSON_EXTRACT {clause.whereValue}</p>
-					<GenericSelect
-						bind:bindValue={clause.conditionValue}
-						optionsIterable={['IS', 'IS NOT', 'HAS NO']}
-					/>
-					{#if clause.conditionValue !== 'HAS NO'}
-						{#if clause.whereValue === 'badges'}
-							<GenericSelect bind:bindValue={clause.input} optionsIterable={badges} />
+			<div class="flex gap-2 items-center">
+				{#if i > 0}
+					<Button
+						variant="destructive"
+						type="button"
+						on:click={() => (clauses = [...clauses.slice(0, i), ...clauses.slice(i + 1)])}>X</Button
+					>
+				{/if}
+				<GenericSelect
+					bind:bindValue={clause.whereValue}
+					optionsIterable={selectValue === 'S1'
+						? parameters
+						: parameters.filter(param => param !== 'exnation')}
+				/>
+				{#if clause.whereValue !== 'exnation'}
+					{#if ['badges', 'trophies'].includes(clause.whereValue)}
+						<p class="min-w-24 text-center">JSON_EXTRACT {clause.whereValue}</p>
+						<GenericSelect
+							bind:bindValue={clause.conditionValue}
+							optionsIterable={['IS', 'IS NOT', 'HAS NO']}
+						/>
+						{#if clause.conditionValue !== 'HAS NO'}
+							{#if clause.whereValue === 'badges'}
+								<GenericSelect bind:bindValue={clause.input} optionsIterable={badges} />
+							{/if}
+							{#if clause.whereValue === 'trophies'}
+								<GenericSelect bind:bindValue={clause.input} optionsIterable={trophies} />
+								<GenericSelect
+									bind:bindValue={clause.trophyPercentage}
+									optionsIterable={['1T', '1', '5', '10']}
+								/>
+							{/if}
+						{:else}
+							<p class="min-w-24 text-center">badges</p>
 						{/if}
-						{#if clause.whereValue === 'trophies'}
-							<GenericSelect bind:bindValue={clause.input} optionsIterable={trophies} />
-							<GenericSelect
-								bind:bindValue={clause.trophyPercentage}
-								optionsIterable={['1T', '1', '5', '10']}
+					{/if}
+					{#if !['badges', 'trophies'].includes(clause.whereValue)}
+						<GenericSelect
+							bind:bindValue={clause.conditionValue}
+							optionsIterable={clause.whereValue !== 'flag' &&
+							!['cardcategory', 'category'].includes(clause.whereValue)
+								? ['IS', 'IS NOT', 'LIKE', 'NOT LIKE']
+								: clause.whereValue === 'flag'
+									? ['LIKE', 'NOT LIKE']
+									: ['IS', 'IS NOT']}
+						/>
+						{#if clause.whereValue === 'flag'}
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={flags} />
+						{:else if clause.whereValue === 'cardcategory'}
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={cardcategory} />
+						{:else if clause.whereValue === 'category'}
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={category} />
+						{:else if clause.whereValue === 'status'}
+							<GenericSelect bind:bindValue={clause.input} optionsIterable={['Exists', 'CTE']} />
+						{:else}
+							<input
+								class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+								bind:value={clause.input}
 							/>
 						{/if}
-					{:else}
-						<p>badges</p>
 					{/if}
+				{:else}
+					<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={['IS']} />
+					<GenericSelect bind:bindValue={clause.input} optionsIterable={['TRUE', 'FALSE']} />
 				{/if}
-				{#if !['badges', 'trophies'].includes(clause.whereValue)}
-					<GenericSelect
-						bind:bindValue={clause.conditionValue}
-						optionsIterable={clause.whereValue !== 'flag' &&
-						!['cardcategory', 'category'].includes(clause.whereValue)
-							? ['IS', 'IS NOT', 'LIKE', 'NOT LIKE']
-							: clause.whereValue === 'flag'
-								? ['LIKE', 'NOT LIKE']
-								: ['IS', 'IS NOT']}
-					/>
-					{#if clause.whereValue === 'flag'}
-						<GenericSelect bind:bindValue={clause.input} optionsIterable={flags} />
-					{:else if clause.whereValue === 'cardcategory'}
-						<GenericSelect bind:bindValue={clause.input} optionsIterable={cardcategory} />
-					{:else if clause.whereValue === 'category'}
-						<GenericSelect bind:bindValue={clause.input} optionsIterable={category} />
-					{:else if clause.whereValue === 'status'}
-						<GenericSelect bind:bindValue={clause.input} optionsIterable={['Exists', 'CTE']} />
-					{:else}
-						<input
-							class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-							bind:value={clause.input}
-						/>
-					{/if}
-				{/if}
-			{:else}
-				<GenericSelect bind:bindValue={clause.conditionValue} optionsIterable={['IS']} />
-				<GenericSelect bind:bindValue={clause.input} optionsIterable={['TRUE', 'FALSE']} />
-			{/if}
+			</div>
+		{/each}
+		<div class="flex gap-2 mt-8">
+			<input
+				type="checkbox"
+				id="clientCards"
+				name="clientCards"
+				value={showClient}
+				on:change={() => {
+					showClient = !showClient
+					ua = ''
+					decks = ''
+					collections = ''
+					bids = ''
+				}}
+				checked={showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== ''))}
+			/>
+			<label for="clientCards">Check with decks, collections, and bids</label><br />
 		</div>
-	{/each}
-	<div class="flex gap-2 mt-8">
-		<input
-			type="checkbox"
-			id="clientCards"
-			name="clientCards"
-			value={showClient}
-			on:change={() => {
-				showClient = !showClient
-			}}
-			checked={showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== ''))}
-		/>
-		<label for="clientCards">Check with decks, collections, and bids</label><br />
-	</div>
-	{#if showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
-		<ClientCards bind:ua bind:decks bind:collections bind:bids />
-	{/if}
-	<div class="space-x-4 mt-8">
-		<Button
-			disabled={clauses.length === 1 &&
-				(clauses[0].whereValue === 'status' || !clauses[0].whereValue)}
-			type="submit">Compute</Button
-		>
-		<Popover.Root>
-			<Popover.Trigger>
-				<Button disabled={!(!errorMessage && returnedItems[0])}>Download</Button></Popover.Trigger
+		<p class="w-80 text-center">
+			This will pass the output of the query against either the specified nation's deck/bids or the
+			combined sum of the collections
+		</p>
+		{#if showClient === true || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
+			<ClientCards bind:ua bind:decks bind:collections bind:bids />
+		{/if}
+		<div class="space-x-4 mt-8">
+			<Button
+				disabled={clauses.length === 1 &&
+					(clauses[0].whereValue === 'status' || !clauses[0].whereValue)}
+				type="submit">Compute</Button
 			>
-			<Popover.Content class="flex flex-col w-min border-none gap-4 -mt-0">
-				<Button
-					disabled={!(!errorMessage && returnedItems[0])}
-					type="submit"
-					on:click={() => {
-						let content = ''
-						returnedItems.forEach(
-							card =>
-								//?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}
-								(content += `<tr><td><p>S${card.season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}">Link to Card</a></p></td></tr>\n`)
-						)
-						const blob = new Blob([htmlContent(content)], { type: 'text/html' })
-						const url = URL.createObjectURL(blob)
-						const a = document.createElement('a')
-						a.href = url
-						a.download = `${dlFileName}.html`
-						document.body.appendChild(a)
-						a.click()
-						document.body.removeChild(a)
-						URL.revokeObjectURL(url)
-					}}>Sheet</Button
-				>
-				<Button
-					disabled={!(!errorMessage && returnedItems[0])}
-					type="submit"
-					on:click={() => {
-						let content = returnedItems.map(card => `${card.id},${card.season}`).join('\n')
-						const blob = new Blob([content], { type: 'text/plain' })
-						const url = URL.createObjectURL(blob)
-						const a = document.createElement('a')
-						a.href = url
-						a.download = `${dlFileName}.txt`
-						document.body.appendChild(a)
-						a.click()
-						document.body.removeChild(a)
-						URL.revokeObjectURL(url)
-					}}>IDs txt</Button
-				>
-				<Button
-					disabled={!(!errorMessage && returnedItems[0])}
-					type="submit"
-					on:click={() =>
-						downloadCSV(
-							returnedItems,
-							`?select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
-						)}>CSV</Button
-				>
-			</Popover.Content>
-		</Popover.Root>
-	</div>
-</form>
+		</div>
+	</form>
+{/if}
 
 {#if errorMessage}
 	<p>{errorMessage}</p>
 {/if}
 
-{#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
-	<Pagination bind:currentPage bind:returnedItems />
-	<div class="flex flex-wrap justify-center">
-		{#each currentCards as card}
-			{#if card.season !== 3}
-				<S1S2Card {card} />
-			{:else}
-				<S3Card {card} />
-			{/if}
-		{/each}
-	</div>
-	<Pagination bind:currentPage bind:returnedItems />
-{:else if !errorMessage && returnedItems[0]}
-	<Pagination bind:currentPage bind:returnedItems />
-	<div class="flex flex-col dark:text-white">
-		{#each currentCards as card}
-			<a href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}>
-				{card.season}
-				{card.name}
-			</a>
-		{/each}
-	</div>
-	<Pagination bind:currentPage bind:returnedItems />
+{#if querying}
+	{#if returnedItems.length > 0 && !errorMessage}
+		<div class="space-x-4 mt-8 mb-8">
+			<Button on:click={() => (querying = false)}>New Query</Button>
+			<Popover.Root>
+				<Popover.Trigger>
+					<Button disabled={!(!errorMessage && returnedItems[0])}>Download</Button></Popover.Trigger
+				>
+				<Popover.Content
+					class="flex flex-col w-min border-none gap-4 -mt-0 bg-secondary-foreground"
+				>
+					<Button
+						disabled={!(!errorMessage && returnedItems[0])}
+						type="submit"
+						on:click={() => {
+							let content = ''
+							returnedItems.forEach(
+								card =>
+									//?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}
+									(content += `<tr><td><p>S${card.season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}">Link to Card</a></p></td></tr>\n`)
+							)
+							const blob = new Blob([htmlContent(content)], { type: 'text/html' })
+							const url = URL.createObjectURL(blob)
+							const a = document.createElement('a')
+							a.href = url
+							a.download = `${dlFileName}.html`
+							document.body.appendChild(a)
+							a.click()
+							document.body.removeChild(a)
+							URL.revokeObjectURL(url)
+						}}>Sheet</Button
+					>
+					<Button
+						disabled={!(!errorMessage && returnedItems[0])}
+						type="submit"
+						on:click={() => {
+							let content = returnedItems.map(card => `${card.id},${card.season}`).join('\n')
+							const blob = new Blob([content], { type: 'text/plain' })
+							const url = URL.createObjectURL(blob)
+							const a = document.createElement('a')
+							a.href = url
+							a.download = `${dlFileName}.txt`
+							document.body.appendChild(a)
+							a.click()
+							document.body.removeChild(a)
+							URL.revokeObjectURL(url)
+						}}>IDs txt</Button
+					>
+					<Button
+						disabled={!(!errorMessage && returnedItems[0])}
+						type="submit"
+						on:click={() =>
+							downloadCSV(
+								returnedItems,
+								`?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+							)}>CSV</Button
+					>
+				</Popover.Content>
+			</Popover.Root>
+		</div>
+
+		{#if !errorMessage && returnedItems[0] && returnedItems[0].cardcategory}
+			<Pagination bind:currentPage bind:returnedItems />
+			<div class="mt-8 flex flex-wrap justify-center">
+				{#each currentCards as card}
+					{#if card.season !== 3}
+						<S1S2Card {card} />
+					{:else}
+						<S3Card {card} />
+					{/if}
+				{/each}
+			</div>
+		{:else if !errorMessage && returnedItems[0]}
+			<Pagination bind:currentPage bind:returnedItems />
+			<div class="mt-8 flex flex-col gap-2 dark:text-white">
+				{#each currentCards as card}
+					<a
+						class="hover:underline"
+						target="_blank"
+						href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}
+					>
+						{card.season}
+						{card.name}
+					</a>
+				{/each}
+			</div>
+		{/if}
+	{:else if loading}
+		<p>Gathering cards...</p>
+	{:else}
+		<p>No cards found for query</p>
+	{/if}
 {/if}
 
 <PreviousQueries bind:clauseHistory />
