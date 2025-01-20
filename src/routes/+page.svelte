@@ -263,8 +263,8 @@
 			<label for="clientCards">Check with decks, collections, and bids</label><br />
 		</div>
 		<p class="w-80 text-center">
-			This will pass the output of the query against either the specified nation's deck/bids or the
-			combined sum of the collections
+			This will pass all the cards that match the query against the combined sum of the specified
+			nation's deck, bids and combined sum of the collections
 		</p>
 		{#if showClient === true || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
 			<ClientCards bind:ua bind:decks bind:collections bind:bids />
@@ -284,9 +284,9 @@
 {/if}
 
 {#if querying}
+	<Button on:click={() => (querying = false)}>New Query</Button>
 	{#if returnedItems.length > 0 && !errorMessage}
 		<div class="space-x-4 mt-8 mb-8">
-			<Button on:click={() => (querying = false)}>New Query</Button>
 			<Popover.Root>
 				<Popover.Trigger>
 					<Button disabled={!(!errorMessage && returnedItems[0])}>Download</Button></Popover.Trigger
@@ -373,7 +373,7 @@
 	{:else if loading}
 		<p>Gathering cards...</p>
 	{:else}
-		<p>No cards found for query</p>
+		<p class="mt-4">No cards found for query</p>
 	{/if}
 {/if}
 
