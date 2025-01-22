@@ -12,6 +12,7 @@
 	import PreviousQueries from '$lib/components/PreviousQueries.svelte'
 	import S1S2Card from '$lib/components/S1S2Card.svelte'
 	import S3Card from '$lib/components/S3Card.svelte'
+	import S4Card from '$lib/components/S4Card.svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import * as Popover from '$lib/components/ui/popover'
 	import { emptyClause } from '$lib/emptyClause'
@@ -48,9 +49,9 @@
 		queryWhereValue =
 			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'min'
 				? 'id, name'
-				: $page.url.searchParams.get('select') === 'min' || selectValue === 'S4'
+				: $page.url.searchParams.get('select') === 'min'
 					? 'id, name'
-					: 'all'
+					: '*'
 		const testBuildClauses =
 			$page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null
 				? $page.url.searchParams
@@ -164,10 +165,7 @@
 	<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 		<div class="flex gap-2 items-center">
 			<p>SELECT</p>
-			<GenericSelect
-				bind:bindValue={queryWhereValue}
-				optionsIterable={selectValue !== 'S4' ? ['id, name', '*'] : ['id, name']}
-			/>
+			<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['id, name', '*']} />
 			<p>FROM</p>
 			<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3', 'S4']} />
 		</div>
@@ -360,12 +358,12 @@
 			<Pagination bind:currentPage bind:returnedItems />
 			<div class="mt-8 flex flex-wrap justify-center">
 				{#each currentCards as card}
-					{#if season !== 3}
+					{#if [1, 2].includes(season)}
 						<S1S2Card {card} {season} {ua} />
 					{:else if season === 3}
 						<S3Card {card} {ua} />
-						<!-- {:else}
-						<S4Card {card} /> -->
+					{:else}
+						<S4Card {card} {ua} />
 					{/if}
 				{/each}
 			</div>
