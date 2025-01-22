@@ -11,10 +11,13 @@
 	export let opt: string = ''
 	export let url: string = ''
 	export let season: number
+	export let ua: string
 </script>
 
 <a
-	href={url ? url : `https://www.nationstates.net/page=deck/card=${card.id}/season=${season}`}
+	href={url
+		? url
+		: `https://www.nationstates.net/page=deck/card=${card.id}/season=${season}?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}`}
 	target="_blank"
 	rel="noopener noreferrer"
 >

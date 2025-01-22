@@ -248,6 +248,16 @@
 				{/if}
 			</div>
 		{/each}
+		<div class="w-80 text-left items-center flex gap-2 justify-between">
+			<label for="ua">User Agent</label>
+			<input
+				id="ua"
+				name="ua"
+				class="max-w-36 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+				bind:value={ua}
+				required
+			/>
+		</div>
 		<div class="flex gap-2 mt-8">
 			<input
 				type="checkbox"
@@ -270,7 +280,7 @@
 			nation's deck, bids and combined sum of the collections
 		</p>
 		{#if showClient === true || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
-			<ClientCards bind:ua bind:decks bind:collections bind:bids />
+			<ClientCards bind:decks bind:collections bind:bids />
 		{/if}
 		<div class="space-x-4 mt-8">
 			<Button
@@ -305,7 +315,7 @@
 							returnedItems.forEach(
 								card =>
 									//?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}
-									(content += `<tr><td><p>S${season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${season}">Link to Card</a></p></td></tr>\n`)
+									(content += `<tr><td><p>S${season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${season}?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}">Link to Card</a></p></td></tr>\n`)
 							)
 							const blob = new Blob([htmlContent(content)], { type: 'text/html' })
 							const url = URL.createObjectURL(blob)
@@ -352,9 +362,9 @@
 			<div class="mt-8 flex flex-wrap justify-center">
 				{#each currentCards as card}
 					{#if season !== 3}
-						<S1S2Card {card} {season} />
+						<S1S2Card {card} {season} {ua} />
 					{:else if season === 3}
-						<S3Card {card} />
+						<S3Card {card} {ua} />
 						<!-- {:else}
 						<S4Card {card} /> -->
 					{/if}
@@ -367,7 +377,7 @@
 					<a
 						class="hover:underline"
 						target="_blank"
-						href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${season}`}
+						href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${season}?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}`}
 					>
 						{card.id}
 						{card.name}
