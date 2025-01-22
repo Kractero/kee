@@ -30,7 +30,8 @@
 
 	let clauses: Array<Clause> = [emptyClause()]
 	let selectValue = 'S3'
-	let queryWhereValue = 'id, name, season'
+	$: season = Number(selectValue[1])
+	let queryWhereValue = 'id, name'
 	let returnedItems: Card[] = []
 	let ua: string = ''
 	let decks: string = ''
@@ -43,13 +44,13 @@
 	let dlFileName = ''
 
 	onMount(async () => {
+		selectValue = $page.url.searchParams.get('from') || 'S3'
 		queryWhereValue =
 			$page.url.searchParams.has('select') && $page.url.searchParams.get('select') === 'min'
-				? 'id, name, season'
-				: $page.url.searchParams.get('select') === 'min'
-					? 'all'
-					: 'id, name, season'
-		selectValue = $page.url.searchParams.get('from') || 'S3'
+				? 'id, name'
+				: $page.url.searchParams.get('select') === 'min' || selectValue === 'S4'
+					? 'id, name'
+					: 'all'
 		const testBuildClauses =
 			$page.url.searchParams.has('clauses') && $page.url.searchParams.get('clauses') !== null
 				? $page.url.searchParams
@@ -100,7 +101,7 @@
 		clauseAsString = clauses.map((clause, i) => {
 			return `${clause.whereValue}-${clause.conditionValue}-${clause.input}${clause.trophyPercentage && `-${clause.trophyPercentage}`}`
 		})
-		let url = `?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
+		let url = `?select=${queryWhereValue === 'id, name' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}${ua && `&ua=${ua.split(',')}`}${decks && `&decks=${decks.split(',')}`}${collections && `&collections=${collections.split(',')}`}${bids && `&bids=${bids.split(',')}`}`
 		pushHistory(url)
 		dlFileName = url
 		if (localStorage.getItem('clauses') !== null) {
@@ -124,7 +125,7 @@
 
 		try {
 			const response = await fetch(
-				`${PUBLIC_API_URL}/api?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
+				`${PUBLIC_API_URL}/api?select=${queryWhereValue === 'id, name' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}`,
 				{
 					headers: {
 						'X-Origin': 'frontend',
@@ -139,8 +140,7 @@
 			if (cardsToPass) {
 				data = data.filter((card: { id: number; season: number }) => {
 					return !cardsToPass.some(
-						collectionCard =>
-							collectionCard.CARDID === card.id && collectionCard.SEASON === card.season
+						collectionCard => collectionCard.CARDID === card.id && collectionCard.SEASON === season
 					)
 				})
 			}
@@ -164,9 +164,12 @@
 	<form on:submit={buildQuery} class="flex flex-col items-center gap-4 mb-8">
 		<div class="flex gap-2 items-center">
 			<p>SELECT</p>
-			<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['id, name, season', '*']} />
+			<GenericSelect
+				bind:bindValue={queryWhereValue}
+				optionsIterable={selectValue !== 'S4' ? ['id, name', '*'] : ['id, name']}
+			/>
 			<p>FROM</p>
-			<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3']} />
+			<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3', 'S4']} />
 		</div>
 
 		<div class="items-center flex gap-2 m-auto">
@@ -302,7 +305,7 @@
 							returnedItems.forEach(
 								card =>
 									//?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}
-									(content += `<tr><td><p>S${card.season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}">Link to Card</a></p></td></tr>\n`)
+									(content += `<tr><td><p>S${season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${season}">Link to Card</a></p></td></tr>\n`)
 							)
 							const blob = new Blob([htmlContent(content)], { type: 'text/html' })
 							const url = URL.createObjectURL(blob)
@@ -319,7 +322,7 @@
 						disabled={!(!errorMessage && returnedItems[0])}
 						type="submit"
 						on:click={() => {
-							let content = returnedItems.map(card => `${card.id},${card.season}`).join('\n')
+							let content = returnedItems.map(card => `${card.id},${season}`).join('\n')
 							const blob = new Blob([content], { type: 'text/plain' })
 							const url = URL.createObjectURL(blob)
 							const a = document.createElement('a')
@@ -337,7 +340,7 @@
 						on:click={() =>
 							downloadCSV(
 								returnedItems,
-								`?select=${queryWhereValue === 'id, name, season' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
+								`?select=${queryWhereValue === 'id, name' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}.csv`
 							)}>CSV</Button
 					>
 				</Popover.Content>
@@ -348,10 +351,12 @@
 			<Pagination bind:currentPage bind:returnedItems />
 			<div class="mt-8 flex flex-wrap justify-center">
 				{#each currentCards as card}
-					{#if card.season !== 3}
-						<S1S2Card {card} />
-					{:else}
+					{#if season !== 3}
+						<S1S2Card {card} {season} />
+					{:else if season === 3}
 						<S3Card {card} />
+						<!-- {:else}
+						<S4Card {card} /> -->
 					{/if}
 				{/each}
 			</div>
@@ -362,9 +367,9 @@
 					<a
 						class="hover:underline"
 						target="_blank"
-						href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}
+						href={`https://www.nationstates.net/page=deck/card=${card.id}/season=${season}`}
 					>
-						{card.season}
+						{card.id}
 						{card.name}
 					</a>
 				{/each}

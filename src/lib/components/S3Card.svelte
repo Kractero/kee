@@ -13,7 +13,7 @@
 </script>
 
 <a
-	href={url ? url : `https://www.nationstates.net/page=deck/card=${card.id}/season=${card.season}`}
+	href={url ? url : `https://www.nationstates.net/page=deck/card=${card.id}/season=3`}
 	target="_blank"
 	rel="noopener noreferrer"
 >
