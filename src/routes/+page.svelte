@@ -117,9 +117,9 @@
 		if (decks || collections || bids) {
 			cardsToPass = await buildCards(
 				ua,
-				collections.split(',') || [],
-				decks.split(',') || [],
-				bids.split(',') || []
+				collections ? collections.split(',') : undefined,
+				decks ? decks.split(',') : undefined,
+				bids ? bids.split(',') : undefined
 			)
 		}
 
@@ -266,7 +266,6 @@
 				value={showClient}
 				on:change={() => {
 					showClient = !showClient
-					ua = ''
 					decks = ''
 					collections = ''
 					bids = ''
