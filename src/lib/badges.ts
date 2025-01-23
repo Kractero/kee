@@ -9,6 +9,7 @@ export const badges = [
     'Founder',
     'Game Mod',
     'General Assembly Resolution Author',
+    'Governor',
     'Security Council Resolution Author',
     'Historical Resolution Author',
     'Issues Author',
