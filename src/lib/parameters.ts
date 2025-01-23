@@ -3,6 +3,7 @@ export const parameters = [
     'type',
     'motto',
     'flag',
+    'banner',
     'exnation',
     'category',
     'description',

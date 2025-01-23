@@ -15,6 +15,7 @@ export interface Card {
 	category: string;
 	region: string;
 	flag: string;
+	banner?: string
 	cardcategory: string;
 	description: string;
 	badges: { [key: string]: string } | string;
