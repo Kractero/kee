@@ -138,6 +138,13 @@
 
 			let data = await response.json()
 
+			if (queryWhereValue === 'id, name') {
+				data = data.map((card: { id: number; name: string }) => ({
+					...card,
+					season: Number(selectValue[1]),
+				}))
+			}
+
 			if (cardsToPass) {
 				data = data.filter((card: { id: number; season: number }) => {
 					return !cardsToPass.some(
