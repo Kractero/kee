@@ -24,7 +24,7 @@
 	}
 
 	let clauses: Array<Clause> = [emptyClause]
-	let selectValue = 'S3'
+	let selectValue = 'S4'
 	let queryWhereValue = 'id, name'
 	let ua: string = ''
 	let decks: string = ''
@@ -48,8 +48,8 @@
 
 <Head title={`Queries`} description={'Query cards from the NationStates card game'} />
 
-<form method="GET" action="/query" class="w-[300px] flex flex-col items-center gap-4 mb-8">
-	<div class="flex gap-2 items-center w-full">
+<form method="GET" action="/query" class="w-10/12 flex flex-col items-center gap-4 mb-8">
+	<div class="flex gap-2 items-center justify-center w-full">
 		<p>SELECT</p>
 		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['id, name', '*']} />
 		<input
@@ -74,7 +74,7 @@
 		{#if i > 0}
 			<p class="w-12 text-center">AND</p>
 		{/if}
-		<div class="flex gap-2 items-center w-full">
+		<div class="flex gap-2 items-center justify-center w-full flex-wrap">
 			{#if i > 0}
 				<Button
 					variant="destructive"
@@ -168,10 +168,6 @@
 		/>
 		<label for="clientCards">Check decks, collections, and bids</label><br />
 	</div>
-	<p class="w-80 text-center">
-		This will pass all the cards that match the query against the combined sum of the specified
-		nation's deck, bids and combined sum of the collections
-	</p>
 	{#if showClient === true || (ua !== '' && (decks !== '' || collections !== '' || bids !== '') === true)}
 		<ClientCards bind:decks bind:collections bind:bids />
 	{/if}

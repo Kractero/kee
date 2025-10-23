@@ -31,3 +31,8 @@
 		bind:value={bids}
 	/>
 </div>
+<p class="w-80 text-center">
+	This will pass all the cards that match the query against the combined sum of the specified
+	nation's deck, bids and sum of the collections. Only cards from the query not present in the above
+	will be kept.
+</p>
