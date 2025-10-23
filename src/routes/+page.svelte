@@ -165,7 +165,7 @@
 			}}
 			checked={showClient || (ua !== '' && (decks !== '' || collections !== '' || bids !== ''))}
 		/>
-		<label for="clientCards">Check with decks, collections, and bids</label><br />
+		<label for="clientCards">Check decks, collections, and bids</label><br />
 	</div>
 	<p class="w-80 text-center">
 		This will pass all the cards that match the query against the combined sum of the specified
