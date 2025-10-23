@@ -15,13 +15,13 @@
 	import type { PageProps } from './$types'
 
 	let { data }: PageProps = $props()
-	let { errorMessage, ua, query, season } = data
-	let cards: Card[] = $state(data.cards)
+	let { err: errorMessage, ua, query, season, checkingClient } = data
+	let cards: Card[] = $state(data.cards || [])
 	let currentPage: number = $state(data.page)
 	let total: number = $state(data.total)
 
 	$effect(() => {
-		if (currentPage) {
+		if (!checkingClient && currentPage) {
 			fetchCards(`${location.search}&page=${currentPage}`)
 				.then(newData => {
 					cards = newData.cards
@@ -48,6 +48,9 @@
 			localStorage.setItem('clauses', JSON.stringify(clauseHistory))
 		}
 	})
+
+	let lastPostIndex = $derived(checkingClient ? currentPage * 25 : 25)
+	let firstPostIndex = $derived(checkingClient ? lastPostIndex - 25 : 0)
 </script>
 
 <Head title={`Queries - Results`} description={`Result of ${data.query}`} />
@@ -109,7 +112,7 @@
 	{#if !errorMessage && cards[0] && cards[0].cardcategory}
 		<Pagination bind:pageNumber={currentPage} {total} />
 		<div class="mt-8 flex flex-wrap justify-center">
-			{#each cards as card}
+			{#each cards.slice(firstPostIndex, lastPostIndex) as card}
 				{#if [1, 2].includes(season)}
 					<S1S2Card {season} {card} {ua} />
 				{:else if season === 3}
@@ -122,7 +125,7 @@
 	{:else if !errorMessage && cards[0]}
 		<Pagination bind:pageNumber={currentPage} {total} />
 		<div class="mt-8 flex flex-col gap-2 dark:text-white">
-			{#each cards as card}
+			{#each cards.slice(firstPostIndex, lastPostIndex) as card}
 				<a
 					class="hover:underline"
 					target="_blank"

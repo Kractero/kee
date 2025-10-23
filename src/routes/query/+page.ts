@@ -65,7 +65,9 @@ export const load: PageLoad = async ({ url }) => {
 
 	let cardsToPass: Array<{ CARDID: number; SEASON: number }> = []
 	if (!ua) return
-	if (decks || collections || bids) {
+
+	const checkingClient = Boolean(decks || collections || bids)
+	if (checkingClient) {
 		cardsToPass = await buildCards(
 			ua,
 			collections ? collections.split(',') : undefined,
@@ -73,7 +75,11 @@ export const load: PageLoad = async ({ url }) => {
 			bids ? bids.split(',') : undefined
 		)
 	}
-	const fullQ = `select=${queryWhereValue === 'id, name' ? 'min' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&limit=${limit}&page=${page}`
+	let baseQ = `select=${queryWhereValue === 'id, name' ? 'id, name' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}`
+	if (decks) baseQ += `&decks=${decks}`
+	if (collections) baseQ += `&collections=${collections}`
+	if (bids) baseQ += `&bids=${bids}`
+	const fullQ = `select=${queryWhereValue === 'id, name' ? 'id, name' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}&limit=${checkingClient ? 25555555 : limit}&page=${page}`
 	try {
 		let { cards: data, total, limit, page } = await fetchCards(fullQ)
 
@@ -94,7 +100,7 @@ export const load: PageLoad = async ({ url }) => {
 
 		cards = data
 
-		return { cards, total, limit, page, err, ua, query: fullQ, season }
+		return { cards, total: checkingClient ? cards.length : total, limit, page, err, ua, query: baseQ, season, checkingClient }
 	} catch (error: unknown) {
 		console.error('Error:', error)
 		if (error instanceof Error) {
