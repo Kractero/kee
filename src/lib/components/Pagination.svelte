@@ -5,16 +5,15 @@
 	let {
 		cards = $bindable(),
 		checkingClient,
-		pageNumber = $bindable(),
+		currentPage = $bindable(),
 		total = $bindable(),
 	} = $props()
 
 	function handlePageChange(changedPage: number) {
-		pageNumber = changedPage
+		currentPage = changedPage
 		if (!checkingClient) {
 			fetchCards(`${location.search.replace('?', '')}&page=${changedPage}`)
 				.then(newData => {
-					console.log(newData)
 					cards = newData.cards
 					total = newData.total
 				})
