@@ -6,7 +6,6 @@
 	import './cards.css'
 
 	export let card: Card
-	export let opt: string = ''
 	export let url: string = ''
 	export let ua: string
 
@@ -37,7 +36,7 @@
 				<div class={`s4-card ${card.cardcategory}`}>
 					<div class="top">
 						<header
-							style={`background-image: linear-gradient(0deg, var(--${card.cardcategory}-main), var(--${card.cardcategory}-main)), linear-gradient(0deg, var(--${card.cardcategory}-dark), var(--${card.cardcategory}-dark)), url(https://www.nationstates.net/images/banners/${card.banner});`}
+							style={`background-image: linear-gradient(0deg, var(--${card.cardcategory}-main), var(--${card.cardcategory}-main)), linear-gradient(0deg, var(--${card.cardcategory}-dark), var(--${card.cardcategory}-dark)), url(https://www.nationstates.net/images/cards/s4/banners/${card.banner});`}
 						>
 							<span class="bold rarity">{card.cardcategory}</span>
 							<div class="rarity-indicator">
@@ -53,10 +52,10 @@
 							<div class="deckcard-info">
 								<div class="deckcard-info-content">
 									<div class="deckcard-info-cardnumber">
-										<a href={`"/page=deck/card=${card.id}/season=4"`}>#{card.id} /4</a>
+										<p>#{card.id} /4</p>
 									</div>
 									<div class="deckcard-info-cardlink">
-										<a href={`"/page=deck/card=${card.id}/season=4"`}>Info</a>
+										<p>Info</p>
 									</div>
 								</div>
 							</div>
@@ -66,14 +65,11 @@
 					</div>
 					<div
 						class="bottom"
-						style={`background-image: url(https://www.nationstates.net/images/banners/${card.banner}), linear-gradient(0deg, var(--${card.cardcategory}-dark), var(--${card.cardcategory}-dark))`}
+						style={`background-image: url(https://www.nationstates.net/images/cards/s4/banners/${card.banner}), linear-gradient(0deg, var(--${card.cardcategory}-dark), var(--${card.cardcategory}-dark))`}
 					>
 						<main>
 							<div class="s4-card-wrapper">
-								<a
-									href={`https://www.nationstates.net/nation=${card.name.toLowerCase().replaceAll(' ', '_')}`}
-									class="title">{card.name}</a
-								>
+								<p class="title">{card.name}</p>
 								<div class="deckcard-badges">
 									{#each Object.keys(card.badges) as badge}
 										{#if banners[badge]}
@@ -133,9 +129,7 @@
 							style={`background-image: linear-gradient(0deg, var(--${card.cardcategory}-main), var(--${card.cardcategory}-main)), linear-gradient(0deg, var(--${card.cardcategory}-dark), var(--${card.cardcategory}-dark)), url(https://www.nationstates.net/images/banners/${card.banner});`}
 						>
 							<span class="">SEASON FOUR</span>
-							<a href={`region=${card.region.toLowerCase().replaceAll(' ', '_')}`} class="rlink"
-								>{card.region}</a
-							>
+							<p class="rlink">{card.region}</p>
 						</footer>
 					</div>
 				</div>
