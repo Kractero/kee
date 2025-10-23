@@ -51,10 +51,11 @@
 <form method="GET" action="/query" class="w-[300px] flex flex-col items-center gap-4 mb-8">
 	<div class="flex gap-2 items-center w-full">
 		<p>SELECT</p>
-		<GenericSelect
-			bind:bindValue={queryWhereValue}
+		<GenericSelect bind:bindValue={queryWhereValue} optionsIterable={['id, name', '*']} />
+		<input
+			type="hidden"
 			name="select"
-			optionsIterable={['id, name', '*']}
+			value={queryWhereValue === 'id, name' ? 'min' : queryWhereValue}
 		/>
 		<p>FROM</p>
 		<GenericSelect
