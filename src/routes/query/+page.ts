@@ -23,7 +23,7 @@ export const load: PageLoad = async ({ url }) => {
 	const selectValue = url.searchParams.get('from') || 'S4'
 	const season = Number(selectValue[1])
 	const queryWhereValue =
-			url.searchParams.has('select') && url.searchParams.get('select') === 'id, name'
+			url.searchParams.has('select') && url.searchParams.get('select') === 'min'
 				? 'id, name' : '*'
 
 	const buildClauses =
@@ -78,11 +78,11 @@ export const load: PageLoad = async ({ url }) => {
 			bids ? bids.split(',') : undefined
 		)
 	}
-	let baseQ = `select=${queryWhereValue === 'id, name' ? 'id, name' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}`
+	let baseQ = `select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}`
 	if (decks) baseQ += `&decks=${decks}`
 	if (collections) baseQ += `&collections=${collections}`
 	if (bids) baseQ += `&bids=${bids}`
-	const fullQ = `select=${queryWhereValue === 'id, name' ? 'id, name' : 'all'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}&limit=${checkingClient ? 25555555 : limit}&page=${page}`
+	const fullQ = `select=${queryWhereValue === '*' ? 'all' : 'min'}&from=${selectValue}&clauses=${clauseAsString.join(',')}&ua=${ua}&limit=${checkingClient ? 25555555 : limit}&page=${page}`
 	try {
 		let { cards: data, total, limit, page } = await fetchCards(fullQ)
 

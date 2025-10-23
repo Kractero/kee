@@ -1,10 +1,27 @@
 <script lang="ts">
 	import * as Pagination from '$lib/components/ui/pagination'
+	import { fetchCards } from '$lib/helpers/fetchCards'
 
-	let { pageNumber = $bindable(), total } = $props()
+	let {
+		cards = $bindable(),
+		checkingClient,
+		pageNumber = $bindable(),
+		total = $bindable(),
+	} = $props()
 
 	function handlePageChange(changedPage: number) {
 		pageNumber = changedPage
+		if (!checkingClient) {
+			fetchCards(`${location.search.replace('?', '')}&page=${changedPage}`)
+				.then(newData => {
+					console.log(newData)
+					cards = newData.cards
+					total = newData.total
+				})
+				.catch(err => {
+					console.error('Failed to fetch cards:', err)
+				})
+		}
 	}
 </script>
 

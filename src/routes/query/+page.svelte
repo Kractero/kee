@@ -17,21 +17,8 @@
 	let { data }: PageProps = $props()
 	let { err: errorMessage, ua, query, season, checkingClient } = data
 	let cards: Card[] = $state(data.cards || [])
-	let currentPage: number = $state(data.page)
+	let currentPage: number = $state(data.page || 0)
 	let total: number = $state(data.total)
-
-	$effect(() => {
-		if (!checkingClient && currentPage) {
-			fetchCards(`${location.search}&page=${currentPage}`)
-				.then(newData => {
-					cards = newData.cards
-					total = newData.total
-				})
-				.catch(err => {
-					console.error('Failed to fetch cards:', err)
-				})
-		}
-	})
 
 	let clauseHistory: string[] = []
 	onMount(async () => {
@@ -110,7 +97,7 @@
 	</div>
 
 	{#if !errorMessage && cards[0] && cards[0].cardcategory}
-		<Pagination bind:pageNumber={currentPage} {total} />
+		<Pagination {checkingClient} bind:cards bind:pageNumber={currentPage} bind:total />
 		<div class="mt-8 flex flex-wrap justify-center">
 			{#each cards.slice(firstPostIndex, lastPostIndex) as card}
 				{#if [1, 2].includes(season)}
@@ -123,7 +110,7 @@
 			{/each}
 		</div>
 	{:else if !errorMessage && cards[0]}
-		<Pagination bind:pageNumber={currentPage} {total} />
+		<Pagination {checkingClient} bind:cards bind:pageNumber={currentPage} bind:total />
 		<div class="mt-8 flex flex-col gap-2 dark:text-white">
 			{#each cards.slice(firstPostIndex, lastPostIndex) as card}
 				<a
