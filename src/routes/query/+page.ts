@@ -2,8 +2,11 @@ import { buildCards } from "$lib/helpers/buildCards"
 import { fetchCards } from "$lib/helpers/fetchCards"
 import type { Card, Clause } from "$lib/types"
 import type { PageLoad } from "./$types"
+import { building } from '$app/environment';
 
 export const load: PageLoad = async ({ url }) => {
+	if (building) return
+
 	let cards = [] as Card[]
 	let limit = Number(url.searchParams.get('limit') || 25)
 	let page = Number(url.searchParams.get('page') || 1)
