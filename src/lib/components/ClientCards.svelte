@@ -7,8 +7,8 @@
 <div class="w-80 text-left items-center flex gap-2 justify-between">
 	<label for="deck">Deck</label>
 	<input
-		id="deck"
-		name="deck"
+		id="decks"
+		name="decks"
 		class="max-w-48 my-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
 		bind:value={decks}
 	/>
