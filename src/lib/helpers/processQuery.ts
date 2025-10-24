@@ -14,7 +14,6 @@ export async function loadCards(url: URL) {
 		qualifier: 'AND',
 		whereValue: '',
 		conditionValue: 'IS',
-		badgeTrophyValue: '',
 		input: '',
 		trophyPercentage: ''
 	};
@@ -32,16 +31,28 @@ export async function loadCards(url: URL) {
 					.get('clauses')!
 					.split(',')
 					.map((clause: string) => {
-						const clauser = clause.split('-');
+						const clauser = clause.split('-')
+						const whereValue = clauser[0] || ''
+						const conditionValue = clauser[1] || whereValue
+						const isTrophy = whereValue === 'trophies'
+						let input = ''
+						let trophyPercentage = ''
+
+						if (isTrophy) {
+							input = clauser.slice(2, -1).join('-')
+							trophyPercentage = clauser.at(-1) || ''
+						} else {
+							input = clauser.slice(2).join('-')
+						}
 						return {
-							whereValue: clauser[0] || '',
-							conditionValue: clauser[1] || clauser[0],
-							input: clauser[2] || clauser[1],
-							badgeTrophyValue: '',
-							trophyPercentage: clauser[0] === 'trophies' ? clauser[3] : '',
+							whereValue,
+							conditionValue,
+							input,
+							trophyPercentage,
 						};
 					})
 			: [];
+
 	const clauseAsString = (buildClauses.length ? [...buildClauses] : [emptyClause])
 		.map(({ whereValue, conditionValue, input, trophyPercentage }: Clause) =>
 			`${whereValue}-${conditionValue}-${input}${trophyPercentage ? `-${trophyPercentage}` : ''}`

@@ -1,7 +1,6 @@
 export interface Clause {
 	whereValue: string;
 	conditionValue: string;
-	badgeTrophyValue: string;
 	input: string;
 	trophyPercentage: string;
 }

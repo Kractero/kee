@@ -13,24 +13,23 @@
 	import { trophies } from '$lib/trophies'
 	import type { Clause } from '$lib/types'
 
-	let showClient = false
+	let showClient = $state(false)
 	const emptyClause = {
 		qualifier: 'AND',
 		whereValue: '',
 		conditionValue: 'IS',
-		badgeTrophyValue: '',
 		input: '',
 		trophyPercentage: '',
 	}
 
-	let clauses: Array<Clause> = [emptyClause]
-	let selectValue = 'S4'
-	let queryWhereValue = 'id, name'
-	let ua: string = ''
-	let decks: string = ''
-	let collections: string = ''
-	let bids: string = ''
-	let clauseHistory: string[] = []
+	let clauses: Array<Clause> = $state([emptyClause])
+	let selectValue = $state('S4')
+	let queryWhereValue = $state('id, name')
+	let ua: string = $state('')
+	let decks: string = $state('')
+	let collections: string = $state('')
+	let bids: string = $state('')
+	let clauseHistory: string[] = $state([])
 
 	onMount(async () => {
 		clauseHistory = localStorage.getItem('clauses')
@@ -38,12 +37,14 @@
 			: []
 	})
 
-	$: joinedClauses = clauses
-		.map(
-			c =>
-				`${c.whereValue}-${c.conditionValue}-${c.input}${c.trophyPercentage ? `-${c.trophyPercentage}` : ''}`
-		)
-		.join(',')
+	let joinedClauses = $derived(
+		clauses
+			.map(
+				c =>
+					`${c.whereValue}-${c.conditionValue}-${c.input}${c.trophyPercentage ? `-${c.trophyPercentage}` : ''}`
+			)
+			.join(',')
+	)
 </script>
 
 <Head title={`Queries`} description={'Query cards from the NationStates card game'} />
@@ -58,11 +59,8 @@
 			value={queryWhereValue === 'id, name' ? 'min' : queryWhereValue}
 		/>
 		<p>FROM</p>
-		<GenericSelect
-			bind:bindValue={selectValue}
-			name="from"
-			optionsIterable={['S1', 'S2', 'S3', 'S4']}
-		/>
+		<GenericSelect bind:bindValue={selectValue} optionsIterable={['S1', 'S2', 'S3', 'S4']} />
+		<input type="hidden" name="from" value={selectValue} />
 	</div>
 
 	<div class="items-center flex gap-2 m-auto">
@@ -158,7 +156,7 @@
 			id="clientCards"
 			name="clientCards"
 			value={showClient}
-			on:change={() => {
+			onchange={() => {
 				showClient = !showClient
 				decks = ''
 				collections = ''
