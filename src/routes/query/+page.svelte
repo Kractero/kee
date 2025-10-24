@@ -8,6 +8,7 @@
 	import Button from '$lib/components/ui/button/button.svelte'
 	import * as Popover from '$lib/components/ui/popover'
 	import { downloadCSV } from '$lib/helpers/download.js'
+	import { fetchCards } from '$lib/helpers/fetchCards'
 	import { htmlContent } from '$lib/helpers/htmlContent.js'
 	import { loadCards } from '$lib/helpers/processQuery'
 	import type { Card } from '$lib/types'
@@ -69,8 +70,11 @@
 					<Button
 						disabled={!(!errorMessage && cards[0])}
 						type="submit"
-						onclick={() => {
+						onclick={async () => {
 							let content = ''
+							const { cards }: { cards: Card[] } = await fetchCards(
+								`${location.search.replace('?', '')}&limit=252525252525`
+							)
 							cards.forEach(
 								card =>
 									(content += `<tr><td><p>S${season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${season}?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}">Link to Card</a></p></td></tr>\n`)
@@ -89,7 +93,10 @@
 					<Button
 						disabled={!(!errorMessage && cards[0])}
 						type="submit"
-						onclick={() => {
+						onclick={async () => {
+							const { cards }: { cards: Card[] } = await fetchCards(
+								`${location.search.replace('?', '')}&limit=252525252525`
+							)
 							let content = cards.map(card => `${card.id},${season}`).join('\n')
 							const blob = new Blob([content], { type: 'text/plain' })
 							const url = URL.createObjectURL(blob)
@@ -105,7 +112,12 @@
 					<Button
 						disabled={!(!errorMessage && cards[0])}
 						type="submit"
-						onclick={() => downloadCSV(cards, `${query}.csv`)}>CSV</Button
+						onclick={async () => {
+							const { cards }: { cards: Card[] } = await fetchCards(
+								`${location.search.replace('?', '')}&limit=252525252525`
+							)
+							downloadCSV(cards, `${query}.csv`)
+						}}>CSV</Button
 					>
 				</Popover.Content>
 			</Popover.Root>
