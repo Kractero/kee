@@ -170,11 +170,7 @@
 		<ClientCards bind:decks bind:collections bind:bids />
 	{/if}
 	<div class="space-x-4 mt-8">
-		<Button
-			disabled={clauses.length === 1 &&
-				(clauses[0].whereValue === 'status' || !clauses[0].whereValue)}
-			type="submit">Compute</Button
-		>
+		<Button disabled={clauses.length === 1 && !clauses[0].whereValue} type="submit">Compute</Button>
 	</div>
 </form>
 
