@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_API_URL } from '$env/static/public'
 	import { onMount } from 'svelte'
 	import Head from '$lib/components/Head.svelte'
 	import Pagination from '$lib/components/Pagination.svelte'
@@ -7,9 +8,6 @@
 	import S4Card from '$lib/components/S4Card.svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import * as Popover from '$lib/components/ui/popover'
-	import { downloadCSV } from '$lib/helpers/download.js'
-	import { fetchCards } from '$lib/helpers/fetchCards'
-	import { htmlContent } from '$lib/helpers/htmlContent.js'
 	import { loadCards } from '$lib/helpers/processQuery'
 	import type { Card } from '$lib/types'
 
@@ -47,6 +45,14 @@
 
 	let lastPostIndex = $derived(checkingClient ? currentPage * 25 : 25)
 	let firstPostIndex = $derived(checkingClient ? lastPostIndex - 25 : 0)
+
+	function downloadUrl(format: string) {
+		const params = new URLSearchParams(location.search)
+		params.delete('limit')
+		params.delete('page')
+		params.set('format', format)
+		return `${PUBLIC_API_URL}/api/download?${params.toString()}`
+	}
 </script>
 
 <Head title={`Queries - Results`} description={`Result of ${query}`} />
@@ -67,58 +73,9 @@
 				<Popover.Content
 					class="flex flex-col w-min border-none gap-4 -mt-0 bg-secondary-foreground"
 				>
-					<Button
-						disabled={!(!errorMessage && cards[0])}
-						type="submit"
-						onclick={async () => {
-							let content = ''
-							const { cards }: { cards: Card[] } = await fetchCards(
-								`${location.search.replace('?', '')}&limit=252525252525`
-							)
-							cards.forEach(
-								card =>
-									(content += `<tr><td><p>S${season} ${card.id}</p></td><td><p><a target="_blank" href="https://www.nationstates.net/page=deck/card=${card.id}/season=${season}?generated_by=Queries__author_main_nation_Kractero__usedBy_${ua}">Link to Card</a></p></td></tr>\n`)
-							)
-							const blob = new Blob([htmlContent(content)], { type: 'text/html' })
-							const url = URL.createObjectURL(blob)
-							const a = document.createElement('a')
-							a.href = url
-							a.download = `${query}.html`
-							document.body.appendChild(a)
-							a.click()
-							document.body.removeChild(a)
-							URL.revokeObjectURL(url)
-						}}>Sheet</Button
-					>
-					<Button
-						disabled={!(!errorMessage && cards[0])}
-						type="submit"
-						onclick={async () => {
-							const { cards }: { cards: Card[] } = await fetchCards(
-								`${location.search.replace('?', '')}&limit=252525252525`
-							)
-							let content = cards.map(card => `${card.id},${season}`).join('\n')
-							const blob = new Blob([content], { type: 'text/plain' })
-							const url = URL.createObjectURL(blob)
-							const a = document.createElement('a')
-							a.href = url
-							a.download = `${query}.txt`
-							document.body.appendChild(a)
-							a.click()
-							document.body.removeChild(a)
-							URL.revokeObjectURL(url)
-						}}>IDs txt</Button
-					>
-					<Button
-						disabled={!(!errorMessage && cards[0])}
-						type="submit"
-						onclick={async () => {
-							const { cards }: { cards: Card[] } = await fetchCards(
-								`${location.search.replace('?', '')}&limit=252525252525`
-							)
-							downloadCSV(cards, `${query}.csv`)
-						}}>CSV</Button
-					>
+					<Button href={downloadUrl('html')}>Sheet</Button>
+					<Button href={downloadUrl('txt')}>IDs txt</Button>
+					<Button href={downloadUrl('csv')}>CSV</Button>
 				</Popover.Content>
 			</Popover.Root>
 		</div>
