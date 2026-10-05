@@ -245,6 +245,7 @@ export const flags = [
     "Sweden",
     "Switzerland",
     "Syria",
+    "Taiwan",
     "Tajikistan",
     "Tanzania",
     "Thailand",
