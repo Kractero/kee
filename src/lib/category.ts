@@ -21,6 +21,7 @@ export const category = [
     'Liberal Democratic Socialists',
     'Libertarian Police State',
     'Moralistic Democracy',
+    'Mother Knows Best State',
     'New York Times Democracy',
     'Psychotic Dictatorship',
     'Right-wing Utopia',
